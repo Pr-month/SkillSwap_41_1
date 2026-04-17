@@ -3,10 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  ManyToMany,
 } from 'typeorm';
-import { User } from './user.entity';
-import { Category } from './category.entity';
+import { User } from '../../users/entities/user.entity';
+import { Category } from '../../categories/entities/category.entity';
 
 @Entity('skills')
 export class Skill {
