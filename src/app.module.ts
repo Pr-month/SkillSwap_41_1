@@ -20,7 +20,7 @@ type DatabaseConfig = {
     // Глобальный конфиг
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
+      load: [appConfig, jwtConfig, dbConfig],
     }),
 
     TypeOrmModule.forRootAsync({
