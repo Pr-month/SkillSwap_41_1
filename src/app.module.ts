@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-
 import { appConfig } from './config/app.config';
 import { jwtConfig } from './config/jwt.config';
 import { dbConfig } from './config/db.config';
@@ -17,16 +15,10 @@ import { dbConfig } from './config/db.config';
       isGlobal: true,
       load: [appConfig, jwtConfig, dbConfig],
     }),
-
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule.forFeature(dbConfig)],
       inject: [dbConfig.KEY],
-      useFactory: (db: ConfigType<typeof dbConfig>) => ({
-        ...db,
-        autoLoadEntities: true,
-      }),
+      useFactory: (db: ConfigType<typeof dbConfig>) => db,
     }),
-
     AuthModule,
     UsersModule,
   ],
