@@ -6,18 +6,9 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { Skill } from './skill.entity';
-import { Category } from './category.entity';
-
-export enum UserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-}
-
-export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-}
+import { Skill } from '../../skills/entities/skill.entity';
+import { Category } from '../../categories/entities/category.entity';
+import { UserRole, Gender } from './enums/users.enums';
 
 @Entity('users')
 export class User {
@@ -62,6 +53,6 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role!: UserRole;
 
-  @Column({ nullable: true, select: false })
+  @Column({ nullable: true })
   refreshToken!: string | null;
 }
