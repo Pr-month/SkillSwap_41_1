@@ -1,13 +1,14 @@
 import {
-  IsArray,
   IsDate,
   IsEmail,
   IsIn,
   IsNotEmpty,
-  IsNumber,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { Gender } from '../../users/entities/enums/users.enums';
+import { Skill } from './../../skills/entities/skill.entity';
+import { Category } from '../../categories/entities/category.entity';
 
 export class CreateAuthDto {
   @MinLength(2)
@@ -17,25 +18,16 @@ export class CreateAuthDto {
   @MinLength(8)
   @MaxLength(16)
   password: string;
+  @IsNotEmpty()
+  about: string;
   @IsDate()
   birthday: Date;
   @IsNotEmpty()
   city: string;
   @IsNotEmpty()
-  @IsIn(['мужской', 'женский'])
-  gender: string;
+  @IsIn(['MALE', 'FEMALE'])
+  gender: Gender;
   avatar: string;
-  @IsNumber()
-  wantToLearnCategory: number;
-  @IsNumber()
-  wantToLearnSubcategory: number;
-  skillName: string;
-  @IsNumber()
-  skillCategory: number;
-  @IsNumber()
-  skillSubcategory: number;
-  @IsNotEmpty()
-  about: string;
-  @IsArray()
-  images: string[];
+  wantToLearn: Category;
+  skills: Skill;
 }

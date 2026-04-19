@@ -1,24 +1,31 @@
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './../users/dto/create-user.dto';
-import { User } from 'src/users/entities/user.entity';
+import { User } from './../users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import { appConfig, IAppConfig } from './../config/app.config';
-import ms, { StringValue } from 'ms';
+import { JwtService } from '@nestjs/jwt';
+import ms from 'ms';
+import { UserRole } from '../users/entities/enums/users.enums';
+import { Skill } from 'src/skills/entities/skill.entity';
+import { Category } from 'src/categories/entities/category.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Skill)
+    private readonly skillRepository: Repository<Skill>,
     @Inject(appConfig.KEY)
     private readonly configService: IAppConfig,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfigService: IJwtConfig,
+    private readonly jwtService: JwtService,
   ) {}
   async register(createAuthDto: CreateAuthDto) {
     const userExists = await this.userRepository.findOne({
@@ -28,15 +35,40 @@ export class AuthService {
       throw new BadRequestException('User already exists');
     }
 
-    const hash = await bcrypt.hash(
-      createAuthDto.password,
-      this.configService.salt,
-    );
     const user = this.userRepository.create({
-      ...createAuthDto,
-      password: hash,
+      name: createAuthDto.name,
+      email: createAuthDto.email,
+      about: createAuthDto.about,
+      birthdate: createAuthDto.birthday,
+      city: createAuthDto.city,
+      gender: createAuthDto.gender,
+      avatar: createAuthDto.avatar,
+      password: await bcrypt.hash(
+        createAuthDto.password,
+        this.configService.hashSalt,
+      ),
+      role: UserRole.USER,
     });
-    const tokens = await this.generateTokens(user.id);
+
+    const skill = this.skillRepository.create({
+      title: createAuthDto.skills.title,
+      description: createAuthDto.skills.description,
+      category: createAuthDto.skills.category,
+      images: createAuthDto.skills.images,
+      owner: user,
+    });
+
+    const category = await this.categoryRepository.findOne({
+      where: { id: createAuthDto.wantToLearn.id },
+    });
+    if (!category) throw new BadRequestException('Category not found');
+
+    user.wantToLearn = [category];
+    user.skills = [skill];
+
+    await this.userRepository.save(user);
+
+    const tokens = this.generateTokens(user.id, user.email, user.role);
     user.refreshToken = tokens.refreshToken;
     await this.userRepository.save(user);
     return {
@@ -61,16 +93,16 @@ export class AuthService {
     return `This action removes a #${id} auth`;
   }
 
-  private async generateTokens(userId: string) {
-    const payload = { sub: userId };
+  private generateTokens(userId: string, userMail: string, userRole: string) {
+    const payload = { sub: userId, email: userMail, role: userRole };
     return {
       accessToken: this.jwtService.sign(payload, {
         secret: this.jwtConfigService.accessSecret,
-        expiresIn: ms(this.jwtConfigService.accessExpiresIn as StringValue),
+        expiresIn: ms(this.jwtConfigService.accessExpiresIn),
       }),
       refreshToken: this.jwtService.sign(payload, {
         secret: this.jwtConfigService.refreshSecret,
-        expiresIn: ms(this.jwtConfigService.refreshExpiresIn as StringValue),
+        expiresIn: ms(this.jwtConfigService.refreshExpiresIn),
       }),
     };
   }

@@ -14,9 +14,9 @@ import {
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { Response, Request, CookieOptions } from 'express';
+import { Response, CookieOptions } from 'express';
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import ms, { StringValue } from 'ms';
+import ms from 'ms';
 
 @Controller('auth')
 export class AuthController {
@@ -69,11 +69,11 @@ export class AuthController {
 
     res.cookie('accessToken', tokens.accessToken, {
       ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.accessExpiresIn as StringValue),
+      maxAge: ms(this.jwtConfigService.accessExpiresIn),
     });
     res.cookie('refreshToken', tokens.refreshToken, {
       ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.refreshExpiresIn as StringValue),
+      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
     });
   }
 }
