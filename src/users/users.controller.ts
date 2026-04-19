@@ -1,6 +1,5 @@
 import {
   Controller,
-  Req,
   Get,
   Post,
   Body,
@@ -31,9 +30,14 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Patch('me')
-  updateMe(@Req() req: any, @Body() dto: UpdateUserDto) {
-    return this.usersService.updateMe(req.user.id, dto);
+  @Get('me')
+  getMe() {
+    return this.usersService.findCurrent();
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
