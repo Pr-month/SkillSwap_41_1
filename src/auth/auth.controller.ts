@@ -8,20 +8,33 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Res,
+  Inject,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { CreateUserDto } from './../users/dto/create-user.dto';
+import { Response, Request, CookieOptions } from 'express';
+import { IJwtConfig, jwtConfig } from './../config/jwt.config';
+import ms, { StringValue } from 'ms';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfigService: IJwtConfig,
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createAuthDto: CreateAuthDto): Promise<CreateUserDto> {
-    return await this.authService.create(createAuthDto);
+  async register(
+    @Body() createAuthDto: CreateAuthDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authService.register(createAuthDto);
+    this.setAuthCookies(res, tokens);
+    return { user };
   }
 
   @Get()
@@ -42,5 +55,25 @@ export class AuthController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.authService.remove(+id);
+  }
+
+  private setAuthCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    };
+
+    res.cookie('accessToken', tokens.accessToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.accessExpiresIn as StringValue),
+    });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.refreshExpiresIn as StringValue),
+    });
   }
 }
