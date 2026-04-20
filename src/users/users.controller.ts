@@ -27,7 +27,7 @@ export class UsersController {
 
   @Get('me')
   getMe() {
-    return this.usersService.findCurrent();
+    // return this.usersService.findCurrent();
   }
 
   @Get(':id')
@@ -37,7 +37,7 @@ export class UsersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.updateMe(id, updateUserDto);
   }
 
   @Delete(':id')

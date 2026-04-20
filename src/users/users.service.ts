@@ -5,10 +5,8 @@ import { UsersRepository } from '../repository/users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly usersRepository: UsersRepository,
-  ) {}
-  
+  constructor(private readonly usersRepository: UsersRepository) {}
+
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
@@ -23,7 +21,7 @@ export class UsersService {
 
   async updateMe(userId: string, dto: UpdateUserDto) {
     return this.usersRepository.updateMe(userId, dto);
-}
+  }
 
   remove(id: number) {
     return `This action removes a #${id} user`;
