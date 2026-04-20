@@ -11,6 +11,7 @@ import { UserRole } from '../users/entities/enums/users.enums';
 import { Skill } from 'src/skills/entities/skill.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Response, CookieOptions } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -91,6 +92,26 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+
+  public setAuthCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    };
+
+    res.cookie('accessToken', tokens.accessToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.accessExpiresIn),
+    });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
+    });
   }
 
   private generateTokens(userId: string, userMail: string, userRole: string) {
