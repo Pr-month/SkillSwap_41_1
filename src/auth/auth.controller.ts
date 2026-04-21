@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { IRequestWithUser } from './auth.types';
 
 @Controller('auth')
