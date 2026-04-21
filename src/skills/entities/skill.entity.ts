@@ -7,7 +7,7 @@ export class Skill {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ type: 'varchar', unique: true })
   title!: string;
 
   @Column({ type: 'text', nullable: true })
