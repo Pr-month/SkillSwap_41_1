@@ -1,6 +1,12 @@
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { User } from './../users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -76,6 +82,43 @@ export class AuthService {
       user,
       tokens,
     };
+  }
+
+  async login(loginAuthDto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: loginAuthDto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginAuthDto.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    const tokens = this.generateTokens(user.id, user.email, user.role);
+
+    user.refreshToken = tokens.refreshToken;
+    await this.userRepository.save(user);
+
+    return { user, tokens };
+  }
+
+  async logout(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (user) {
+      user.refreshToken = null;
+      await this.userRepository.save(user);
+    }
   }
 
   findAll() {

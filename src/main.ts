@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 import { ConfigType } from '@nestjs/config';
-import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './common/filters/all-exception.filter';
 import { appConfig } from './config/app.config';
 
