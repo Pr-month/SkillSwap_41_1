@@ -1,11 +1,7 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   HttpCode,
   HttpStatus,
   Res,
@@ -20,7 +16,6 @@ import { LoginDto } from './dto/login.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { Response, CookieOptions } from 'express';
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import ms from 'ms';
 
 @Controller('auth')
 export class AuthController {
@@ -37,7 +32,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, tokens } = await this.authService.register(createAuthDto);
-    this.setAuthCookies(res, tokens);
+    this.authService.setAuthCookies(res, tokens);
     return { user };
   }
 
