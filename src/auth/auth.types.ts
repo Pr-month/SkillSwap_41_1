@@ -5,3 +5,7 @@ export interface JwtPayload {
   email: string;
   role: UserRole;
 }
+
+export interface IRequestWithUser extends Request {
+  user: JwtPayload;
+}
