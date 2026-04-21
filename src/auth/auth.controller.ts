@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { IRequestWithUser } from './auth.types';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -19,11 +20,7 @@ import { IJwtConfig, jwtConfig } from './../config/jwt.config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfigService: IJwtConfig,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -64,23 +61,15 @@ export class AuthController {
     return { message: 'Вы успешно вышли из аккаунта' };
   }
 
-  private setAuthCookies(
-    res: Response,
-    tokens: { accessToken: string; refreshToken: string },
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Req() req: IRequestWithUser,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const cookieOptions: CookieOptions = {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-    };
-
-    res.cookie('accessToken', tokens.accessToken, {
-      ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.accessExpiresIn),
-    });
-    res.cookie('refreshToken', tokens.refreshToken, {
-      ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
-    });
+    const refreshToken = req.cookies?.refreshToken as string;
+    const { user, tokens } = await this.authService.refresh(refreshToken);
+    this.authService.setAuthCookies(res, tokens);
+    return { message: 'Tokens refreshed successfully', user };
   }
 }

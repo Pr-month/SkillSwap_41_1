@@ -18,6 +18,7 @@ import { Skill } from 'src/skills/entities/skill.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response, CookieOptions } from 'express';
+import { JwtPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -84,6 +85,29 @@ export class AuthService {
     };
   }
 
+  async refresh(oldRefreshToken: string) {
+    if (!oldRefreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+
+    let payload: JwtPayload;
+    try {
+      payload = await this.jwtService.verifyAsync(oldRefreshToken, {
+        secret: this.jwtConfigService.refreshSecret,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub },
+    });
+
+    if (!user || user.refreshToken !== oldRefreshToken) {
+      throw new UnauthorizedException('Refresh token has been revoked');
+    }
+  }
+  
   async login(loginAuthDto: LoginDto) {
     const user = await this.userRepository.findOne({
       where: { email: loginAuthDto.email },
@@ -125,16 +149,12 @@ export class AuthService {
     return `This action returns all auth`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    const tokens = this.generateTokens(user.id, user.email, user.role);
 
-  /*  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  } */
+    user.refreshToken = tokens.refreshToken;
+    await this.userRepository.save(user);
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    return { user, tokens };
   }
 
   public setAuthCookies(
@@ -157,8 +177,32 @@ export class AuthService {
     });
   }
 
-  private generateTokens(userId: string, userMail: string, userRole: string) {
-    const payload = { sub: userId, email: userMail, role: userRole };
+  public setAuthCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    };
+
+    res.cookie('accessToken', tokens.accessToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.accessExpiresIn),
+    });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
+    });
+  }
+
+  private generateTokens(userId: string, userMail: string, userRole: UserRole) {
+    const payload: JwtPayload = {
+      sub: userId,
+      email: userMail,
+      role: userRole,
+    };
     return {
       accessToken: this.jwtService.sign(payload, {
         secret: this.jwtConfigService.accessSecret,
