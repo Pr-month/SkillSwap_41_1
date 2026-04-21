@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { User } from './../users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -105,6 +106,25 @@ export class AuthService {
     if (!user || user.refreshToken !== oldRefreshToken) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
+  }
+  
+  async login(loginAuthDto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: loginAuthDto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginAuthDto.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
 
@@ -112,6 +132,49 @@ export class AuthService {
     await this.userRepository.save(user);
 
     return { user, tokens };
+  }
+
+  async logout(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (user) {
+      user.refreshToken = null;
+      await this.userRepository.save(user);
+    }
+  }
+
+  findAll() {
+    return `This action returns all auth`;
+  }
+
+    const tokens = this.generateTokens(user.id, user.email, user.role);
+
+    user.refreshToken = tokens.refreshToken;
+    await this.userRepository.save(user);
+
+    return { user, tokens };
+  }
+
+  public setAuthCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    };
+
+    res.cookie('accessToken', tokens.accessToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.accessExpiresIn),
+    });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      ...cookieOptions,
+      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
+    });
   }
 
   public setAuthCookies(

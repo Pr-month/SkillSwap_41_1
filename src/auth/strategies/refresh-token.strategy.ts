@@ -2,12 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 
 import { jwtConfig } from '../../config/jwt.config';
 import { JwtPayload } from '../auth.types';
+import { cookieExtractor } from './extractors';
 
-const extractRefreshToken = ExtractJwt.fromAuthHeaderAsBearerToken();
+const extractRefreshToken = cookieExtractor('refreshToken');
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(

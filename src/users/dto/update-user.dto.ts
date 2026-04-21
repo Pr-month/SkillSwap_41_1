@@ -3,7 +3,6 @@ import {
   IsString,
   IsEnum,
   IsDateString,
-  IsArray,
 } from 'class-validator';
 import { Gender } from '../entities/enums/users.enums';
 

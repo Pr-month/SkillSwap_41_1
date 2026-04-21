@@ -1,8 +1,10 @@
 import {
-  IsDate,
+  IsDateString,
   IsEmail,
   IsIn,
   IsNotEmpty,
+  IsOptional,
+  IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -20,14 +22,18 @@ export class CreateAuthDto {
   password: string;
   @IsNotEmpty()
   about: string;
-  @IsDate()
+  @IsDateString()
   birthday: Date;
   @IsNotEmpty()
   city: string;
   @IsNotEmpty()
   @IsIn(['MALE', 'FEMALE'])
   gender: Gender;
+  @IsOptional()
+  @IsString()
   avatar: string;
+  @IsOptional()
   wantToLearn: Category;
+  @IsOptional()
   skills: Skill;
 }
