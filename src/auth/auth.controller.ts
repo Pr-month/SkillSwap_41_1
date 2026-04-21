@@ -41,7 +41,7 @@ export class AuthController {
   ) {
     const { user, tokens } = await this.authService.login(loginDto);
 
-    this.setAuthCookies(res, tokens);
+    this.authService.setAuthCookies(res, tokens);
     const { password, refreshToken, ...result } = user;
 
     return result;

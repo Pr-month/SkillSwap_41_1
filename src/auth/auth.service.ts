@@ -34,7 +34,7 @@ export class AuthService {
     @Inject(jwtConfig.KEY)
     private readonly jwtConfigService: IJwtConfig,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
   async register(createAuthDto: CreateAuthDto) {
     const userExists = await this.userRepository.findOne({
       where: { email: createAuthDto.email },
@@ -106,8 +106,14 @@ export class AuthService {
     if (!user || user.refreshToken !== oldRefreshToken) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
+    const tokens = this.generateTokens(user.id, user.email, user.role);
+
+    user.refreshToken = tokens.refreshToken;
+    await this.userRepository.save(user);
+
+    return { user, tokens };
   }
-  
+
   async login(loginAuthDto: LoginDto) {
     const user = await this.userRepository.findOne({
       where: { email: loginAuthDto.email },
@@ -149,33 +155,7 @@ export class AuthService {
     return `This action returns all auth`;
   }
 
-    const tokens = this.generateTokens(user.id, user.email, user.role);
 
-    user.refreshToken = tokens.refreshToken;
-    await this.userRepository.save(user);
-
-    return { user, tokens };
-  }
-
-  public setAuthCookies(
-    res: Response,
-    tokens: { accessToken: string; refreshToken: string },
-  ) {
-    const cookieOptions: CookieOptions = {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-    };
-
-    res.cookie('accessToken', tokens.accessToken, {
-      ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.accessExpiresIn),
-    });
-    res.cookie('refreshToken', tokens.refreshToken, {
-      ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
-    });
-  }
 
   public setAuthCookies(
     res: Response,
