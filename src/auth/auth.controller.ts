@@ -1,30 +1,20 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   HttpCode,
   HttpStatus,
   Res,
-  Inject,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { Response, CookieOptions } from 'express';
-import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import ms from 'ms';
+import { Response, Request } from 'express';
+import { IRequestWithUser } from './auth.types';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfigService: IJwtConfig,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -33,27 +23,19 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, tokens } = await this.authService.register(createAuthDto);
-    this.setAuthCookies(res, tokens);
+    this.authService.setAuthCookies(res, tokens);
     return { user };
   }
 
-  private setAuthCookies(
-    res: Response,
-    tokens: { accessToken: string; refreshToken: string },
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Req() req: IRequestWithUser,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const cookieOptions: CookieOptions = {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-    };
-
-    res.cookie('accessToken', tokens.accessToken, {
-      ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.accessExpiresIn),
-    });
-    res.cookie('refreshToken', tokens.refreshToken, {
-      ...cookieOptions,
-      maxAge: ms(this.jwtConfigService.refreshExpiresIn),
-    });
+    const refreshToken = req.cookies?.refreshToken as string;
+    const { user, tokens } = await this.authService.refresh(refreshToken);
+    this.authService.setAuthCookies(res, tokens);
+    return { message: 'Tokens refreshed successfully', user };
   }
 }
