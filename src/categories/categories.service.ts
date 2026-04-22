@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
@@ -12,8 +12,29 @@ export class CategoriesService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  async create(createCategoryDto: CreateCategoryDto) {
+    const { name, parentId } = createCategoryDto;
+    let parent: Category | null = null;
+
+    if (parentId) {
+      parent = await this.categoryRepository.findOne({
+        where: {
+          id: parentId,
+        },
+      });
+      if (!parent) {
+        throw new NotFoundException('Parent category not found');
+      }
+    }
+
+    const newCategory = this.categoryRepository.create({
+      name: name,
+      parent: parent,
+    });
+
+    const result = await this.categoryRepository.save(newCategory);
+
+    return result;
   }
 
   async findAll() {
