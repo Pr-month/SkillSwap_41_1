@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
@@ -52,11 +52,49 @@ export class CategoriesService {
     return `This action returns a #${id} category`;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    const { name, parentId } = updateCategoryDto;
+    const category = await this.categoryRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    if (name) {
+      category.name = name;
+    }
+
+    if (parentId) {
+      if (parentId === id) {
+        throw new BadRequestException('Can not be own parent');
+      }
+      const parent = await this.getParentByParentId(parentId)
+
+      category.parent = parent
+    }
+
+  const result = await this.categoryRepository.save(category);
+
+  return result
   }
 
   remove(id: number) {
     return `This action removes a #${id} category`;
+  }
+
+  private async getParentByParentId (parentId: string ) {
+    const parent = await this.categoryRepository.findOne({
+      where: {
+        id: parentId,
+      },
+    });
+    if (!parent) {
+      throw new NotFoundException('Parent category not found');
+    }
+    return parent;
   }
 }
