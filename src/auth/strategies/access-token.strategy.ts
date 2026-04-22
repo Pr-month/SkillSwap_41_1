@@ -5,7 +5,7 @@ import { Strategy } from 'passport-jwt';
 
 import { jwtConfig } from '../../config/jwt.config';
 import { JwtPayload } from '../auth.types';
-import { cookieExtractor } from './extractors';
+import { cookieExtractor } from '../../common/helpers/extractors';
 
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {

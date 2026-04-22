@@ -6,7 +6,7 @@ import { Strategy } from 'passport-jwt';
 
 import { jwtConfig } from '../../config/jwt.config';
 import { JwtPayload } from '../auth.types';
-import { cookieExtractor } from './extractors';
+import { cookieExtractor } from '../../common/helpers/extractors';
 
 const extractRefreshToken = cookieExtractor('refreshToken');
 
