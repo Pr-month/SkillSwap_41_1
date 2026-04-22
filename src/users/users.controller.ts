@@ -31,7 +31,7 @@ export class UsersController {
 
   @Get('me')
   getMe() {
-    // return this.usersService.findCurrent();
+    // Reserved for the current-user profile flow.
   }
 
   @UseGuards(AccessTokenGuard)
@@ -40,6 +40,7 @@ export class UsersController {
     @CurrentUser() user: { sub: string },
     @Body() dto: UpdatePasswordDto,
   ) {
+    // The JWT payload contains the current user's id in sub.
     return this.usersService.updatePassword(user.sub, dto);
   }
 
