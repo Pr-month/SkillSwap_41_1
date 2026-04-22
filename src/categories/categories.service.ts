@@ -82,11 +82,24 @@ export class CategoriesService {
   return result
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: string) {
+    const category = await this.findCategoryById(id);
+
+    // проверка, есть ли у категории дочерние категории
+    const childrenCount = await this.categoryRepository.count({
+      where: { parent: { id: category.id } },
+    });
+    // просто выкидываем ошибку, возможно, нужна другая логика
+    if (childrenCount > 0) {
+      throw new BadRequestException('Category has children');
+    }
+
+    const result = await this.categoryRepository.delete(category.id);
+
+    return result;
   }
 
-  private async getParentByParentId (parentId: string ) {
+  private async getParentByParentId(parentId: string) {
     const parent = await this.categoryRepository.findOne({
       where: {
         id: parentId,
@@ -96,5 +109,18 @@ export class CategoriesService {
       throw new NotFoundException('Parent category not found');
     }
     return parent;
+  }
+
+  private async findCategoryById(id: string) {
+    const category = await this.categoryRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    return category;
   }
 }

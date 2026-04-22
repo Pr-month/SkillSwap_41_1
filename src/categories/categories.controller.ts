@@ -40,8 +40,9 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
+   // TODO: защита гардом? (ТЗ 1.5)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+    return this.categoriesService.remove(id);
   }
 }
