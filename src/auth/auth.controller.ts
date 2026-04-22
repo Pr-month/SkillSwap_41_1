@@ -5,18 +5,15 @@ import {
   HttpCode,
   HttpStatus,
   Res,
-  Inject,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { IRequestWithUser } from './auth.types';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
-import { Response, CookieOptions } from 'express';
-import { IJwtConfig, jwtConfig } from './../config/jwt.config';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -25,10 +22,10 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(
-    @Body() createAuthDto: CreateAuthDto,
+    @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { user, tokens } = await this.authService.register(createAuthDto);
+    const { user, tokens } = await this.authService.register(registerDto);
     this.authService.setAuthCookies(res, tokens);
     return { user };
   }
@@ -50,7 +47,10 @@ export class AuthController {
   @Post('logout')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
-  async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
+  async logout(
+    @Req() req: IRequestWithUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const userId = req.user.sub;
 
     await this.authService.logout(userId);
