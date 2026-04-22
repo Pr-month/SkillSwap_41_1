@@ -8,8 +8,8 @@ import { appConfig, IAppConfig } from './../config/app.config';
 import { JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserRole } from '../users/entities/enums/users.enums';
-import { Skill } from 'src/skills/entities/skill.entity';
-import { Category } from 'src/categories/entities/category.entity';
+import { Skill } from '../skills/entities/skill.entity';
+import { Category } from '../categories/entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()

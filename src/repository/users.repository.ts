@@ -33,4 +33,16 @@ export class UsersRepository {
 
     return this.repository.save(user);
   }
+
+  async updatePassword(id: string, password: string): Promise<User> {
+    const user = await this.findById(id);
+
+    if (!user) {
+      throw new Error('Пользователь не найден');
+    }
+
+    user.password = password;
+
+    return this.repository.save(user);
+  }
 }

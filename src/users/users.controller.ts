@@ -6,10 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -28,6 +32,15 @@ export class UsersController {
   @Get('me')
   getMe() {
     // return this.usersService.findCurrent();
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch('me/password')
+  updatePassword(
+    @CurrentUser() user: { sub: string },
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(user.sub, dto);
   }
 
   @Get(':id')

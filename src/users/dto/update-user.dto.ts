@@ -1,10 +1,4 @@
-import {
-  IsOptional,
-  IsString,
-  IsEnum,
-  IsDateString,
-  IsArray,
-} from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsDateString } from 'class-validator';
 import { Gender } from '../entities/enums/users.enums';
 
 export class UpdateUserDto {
