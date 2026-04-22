@@ -20,11 +20,10 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    //TODO: Закомментировано до реализации скиллов и категорий
-    // @InjectRepository(Category)
-    // private readonly categoryRepository: Repository<Category>,
-    // @InjectRepository(Skill)
-    // private readonly skillRepository: Repository<Skill>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Skill)
+    private readonly skillRepository: Repository<Skill>,
     @Inject(appConfig.KEY)
     private readonly configService: IAppConfig,
     @Inject(jwtConfig.KEY)
