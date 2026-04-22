@@ -26,12 +26,7 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(+id);
-  }
-
-   // TODO: защита гардом? (ТЗ 1.5)
+  // TODO: защита гардом? (ТЗ 1.5)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -40,7 +35,7 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
-   // TODO: защита гардом? (ТЗ 1.5)
+  // TODO: защита гардом? (ТЗ 1.5)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);

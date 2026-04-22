@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
@@ -17,14 +21,7 @@ export class CategoriesService {
     let parent: Category | null = null;
 
     if (parentId) {
-      parent = await this.categoryRepository.findOne({
-        where: {
-          id: parentId,
-        },
-      });
-      if (!parent) {
-        throw new NotFoundException('Parent category not found');
-      }
+      parent = await this.getParentByParentId(parentId);
     }
 
     const newCategory = this.categoryRepository.create({
@@ -48,21 +45,9 @@ export class CategoriesService {
     return result;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
-  }
-
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     const { name, parentId } = updateCategoryDto;
-    const category = await this.categoryRepository.findOne({
-      where: {
-        id: id,
-      },
-    });
-
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
+    const category = await this.findCategoryById(id);
 
     if (name) {
       category.name = name;
@@ -72,20 +57,20 @@ export class CategoriesService {
       if (parentId === id) {
         throw new BadRequestException('Can not be own parent');
       }
-      const parent = await this.getParentByParentId(parentId)
+      const parent = await this.getParentByParentId(parentId);
 
-      category.parent = parent
+      category.parent = parent;
     }
 
-  const result = await this.categoryRepository.save(category);
+    const result = await this.categoryRepository.save(category);
 
-  return result
+    return result;
   }
 
   async remove(id: string) {
     const category = await this.findCategoryById(id);
 
-    // проверка, есть ли у категории дочерние категории
+    // не удаляем категорию, если у нее есть дочерние категории.
     const childrenCount = await this.categoryRepository.count({
       where: { parent: { id: category.id } },
     });
