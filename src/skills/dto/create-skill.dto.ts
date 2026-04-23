@@ -13,5 +13,6 @@ export class CreateSkillDto {
 
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   images?: string[];
 }
