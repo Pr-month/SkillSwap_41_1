@@ -14,7 +14,7 @@ import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
-import { JwtPayload } from '../auth/auth.types';
+import { IRequestWithUser } from '../auth/auth.types';
 
 @Controller('skills')
 export class SkillsController {
@@ -40,7 +40,7 @@ export class SkillsController {
   update(
     @Param('id') id: string,
     @Body() updateSkillDto: UpdateSkillDto,
-    @Req() req: Request & { user: JwtPayload },
+    @Req() req: IRequestWithUser,
   ) {
     return this.skillsService.update(id, updateSkillDto, req.user.sub);
   }
