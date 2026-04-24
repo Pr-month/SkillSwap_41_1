@@ -1,11 +1,10 @@
-import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 
 @Injectable()
@@ -15,7 +14,7 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
-  ) {}
+  ) { }
 
   async create(dto: CreateSkillDto, ownerId: string) {
     const category = await this.categoriesRepository.findOne({
