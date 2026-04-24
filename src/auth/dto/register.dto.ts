@@ -1,16 +1,18 @@
 import {
-  IsDate,
+  IsDateString,
   IsEmail,
-  IsIn,
+  IsEnum,
   IsNotEmpty,
+  IsOptional,
+  IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import { Gender } from '../../users/entities/enums/users.enums';
-import { Skill } from './../../skills/entities/skill.entity';
+import { Skill } from '../../skills/entities/skill.entity';
 import { Category } from '../../categories/entities/category.entity';
 
-export class CreateAuthDto {
+export class RegisterDto {
   @MinLength(2)
   name: string;
   @IsEmail()
@@ -20,14 +22,18 @@ export class CreateAuthDto {
   password: string;
   @IsNotEmpty()
   about: string;
-  @IsDate()
+  @IsDateString()
   birthday: Date;
   @IsNotEmpty()
   city: string;
   @IsNotEmpty()
-  @IsIn(['MALE', 'FEMALE'])
+  @IsEnum(Gender)
   gender: Gender;
+  @IsOptional()
+  @IsString()
   avatar: string;
+  @IsOptional()
   wantToLearn: Category;
+  @IsOptional()
   skills: Skill;
 }
