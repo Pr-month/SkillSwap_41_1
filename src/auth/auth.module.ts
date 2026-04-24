@@ -8,6 +8,7 @@ import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
 import { Skill } from '../skills/entities/skill.entity';
@@ -25,7 +26,8 @@ import { Skill } from '../skills/entities/skill.entity';
     RefreshTokenStrategy,
     AccessTokenGuard,
     RefreshTokenGuard,
+    RolesGuard,
   ],
-  exports: [AccessTokenGuard, RefreshTokenGuard],
+  exports: [AccessTokenGuard, RefreshTokenGuard, RolesGuard],
 })
 export class AuthModule {}
