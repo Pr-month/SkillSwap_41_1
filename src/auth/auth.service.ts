@@ -1,11 +1,6 @@
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { User } from './../users/entities/user.entity';
@@ -34,15 +29,8 @@ export class AuthService {
     @Inject(jwtConfig.KEY)
     private readonly jwtConfigService: IJwtConfig,
     private readonly jwtService: JwtService,
-  ) { }
-  async register(createAuthDto: CreateAuthDto) {
-    const userExists = await this.userRepository.findOne({
-      where: { email: createAuthDto.email },
-    });
-    if (userExists) {
-      throw new BadRequestException('User already exists');
-    }
-
+  ) {}
+  async register(createAuthDto: RegisterDto) {
     const user = this.userRepository.create({
       name: createAuthDto.name,
       email: createAuthDto.email,
@@ -57,22 +45,23 @@ export class AuthService {
       ),
       role: UserRole.USER,
     });
+    // TODO: Закомментировано до реализации скиллов и категорий
+    //
+    // const skill = this.skillRepository.create({
+    //   title: createAuthDto.skills.title,
+    //   description: createAuthDto.skills.description,
+    //   category: createAuthDto.skills.category,
+    //   images: createAuthDto.skills.images,
+    //   owner: user,
+    // });
 
-    const skill = this.skillRepository.create({
-      title: createAuthDto.skills.title,
-      description: createAuthDto.skills.description,
-      category: createAuthDto.skills.category,
-      images: createAuthDto.skills.images,
-      owner: user,
-    });
+    // const category = await this.categoryRepository.findOne({
+    //   where: { id: createAuthDto.wantToLearn.id },
+    // });
+    // if (!category) throw new BadRequestException('Category not found');
 
-    const category = await this.categoryRepository.findOne({
-      where: { id: createAuthDto.wantToLearn.id },
-    });
-    if (!category) throw new BadRequestException('Category not found');
-
-    user.wantToLearn = [category];
-    user.skills = [skill];
+    // user.wantToLearn = [category];
+    // user.skills = [skill];
 
     await this.userRepository.save(user);
 
@@ -150,12 +139,6 @@ export class AuthService {
       await this.userRepository.save(user);
     }
   }
-
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-
 
   public setAuthCookies(
     res: Response,
