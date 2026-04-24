@@ -1,11 +1,12 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
-import { CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillDto } from './dto/update-skill.dto';
 import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
+import { User } from '../users/entities/user.entity';
+import { CreateSkillDto } from './dto/create-skill.dto';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 
 @Injectable()
 export class SkillsService {
@@ -16,8 +17,22 @@ export class SkillsService {
     private readonly categoriesRepository: Repository<Category>,
   ) {}
 
-  create(createSkillDto: CreateSkillDto) {
-    return 'This action adds a new skill';
+  async create(dto: CreateSkillDto, ownerId: string) {
+    const category = await this.categoriesRepository.findOne({
+      where: { id: dto.categoryId },
+    });
+
+    if (!category) throw new NotFoundException('Категория не найдена');
+
+    const skill = this.skillsRepository.create({
+      title: dto.title,
+      description: dto.description ?? null,
+      images: dto.images ?? [],
+      category,
+      owner: { id: ownerId } as User,
+    });
+
+    return this.skillsRepository.save(skill);
   }
 
   findAll() {
