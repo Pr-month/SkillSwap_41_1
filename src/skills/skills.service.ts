@@ -4,7 +4,11 @@ import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 
 @Injectable()
@@ -14,7 +18,7 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
-  ) { }
+  ) {}
 
   async create(dto: CreateSkillDto, ownerId: string) {
     const category = await this.categoriesRepository.findOne({
@@ -38,7 +42,7 @@ export class SkillsService {
     return `This action returns all skills`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} skill`;
   }
 
@@ -69,7 +73,7 @@ export class SkillsService {
     return this.skillsRepository.save(skill);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} skill`;
   }
 }
