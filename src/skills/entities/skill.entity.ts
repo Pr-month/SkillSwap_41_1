@@ -10,7 +10,7 @@ export class Skill {
   @Column({ type: 'varchar', unique: true })
   title!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   description!: string | null;
 
   @ManyToOne(() => Category, { nullable: false })

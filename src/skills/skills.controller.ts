@@ -1,28 +1,18 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
-
-import { SkillsService } from './skills.service';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { IRequestWithUser } from '../auth/auth.types';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
-import { AccessTokenGuard } from '../auth/guards/access-token.guard';
-import { JwtPayload } from '../auth/auth.types';
+import { RequestWithUser } from './skill.types';
+import { SkillsService } from './skills.service';
 
 @Controller('skills')
 export class SkillsController {
-  constructor(private readonly skillsService: SkillsService) {}
+  constructor(private readonly skillsService: SkillsService) { }
 
   @Post()
-  create(@Body() createSkillDto: CreateSkillDto) {
-    return this.skillsService.create(createSkillDto);
+  create(@Body() createSkillDto: CreateSkillDto, @Req() req: RequestWithUser) {
+    return this.skillsService.create(createSkillDto, req.user.id);
   }
 
   @Get()
@@ -40,7 +30,7 @@ export class SkillsController {
   update(
     @Param('id') id: string,
     @Body() updateSkillDto: UpdateSkillDto,
-    @Req() req: Request & { user: JwtPayload },
+    @Req() req: IRequestWithUser,
   ) {
     return this.skillsService.update(id, updateSkillDto, req.user.sub);
   }
