@@ -50,4 +50,10 @@ export class SkillsController {
   remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
     return this.skillsService.remove(id, req.user.sub);
   }
+
+  @UseGuards(AccessTokenGuard)
+  @Post(':id/favorite')
+  addToFavorite(@Param('id') id: string, @Req() req: IRequestWithUser) {
+    return this.skillsService.addToFavorite(id, req.user.sub);
+  }
 }
