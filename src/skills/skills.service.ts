@@ -10,6 +10,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class SkillsService {
@@ -73,7 +75,26 @@ export class SkillsService {
     return this.skillsRepository.save(skill);
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} skill`;
+  async remove(id: string, userId: string) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: { owner: true },
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    if (skill.owner.id !== userId) {
+      throw new ForbiddenException('Вы не можете удалить этот навык');
+    }
+
+    for (const image of skill.images) {
+      const filePath = join(process.cwd(), image);
+      await fs.unlink(filePath).catch(() => null);
+    }
+
+    await this.skillsRepository.remove(skill);
+    return { message: 'Навык удален' };
   }
 }

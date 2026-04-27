@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { IRequestWithUser } from 'src/auth/auth.types';
 
 @Controller('users')
 export class UsersController {
@@ -26,8 +28,8 @@ export class UsersController {
   }
 
   @Get('me')
-  getMe() {
-    // return this.usersService.findCurrent();
+  getMe(@Req() req: IRequestWithUser) {
+    return this.usersService.findOne(req.user.sub);
   }
 
   @Get(':id')

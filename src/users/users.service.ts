@@ -29,7 +29,7 @@ export class UsersService {
   }
 
   findOne(id: string) {
-    return `This action returns a #${id} user`;
+    return this.usersRepository.findById(id);
   }
 
   async updateMe(userId: string, dto: UpdateUserDto) {

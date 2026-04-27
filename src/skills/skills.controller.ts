@@ -45,8 +45,9 @@ export class SkillsController {
     return this.skillsService.update(id, updateSkillDto, req.user.sub);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
+    return this.skillsService.remove(id, req.user.sub);
   }
 }
