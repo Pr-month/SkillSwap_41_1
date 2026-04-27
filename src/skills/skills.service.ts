@@ -44,7 +44,7 @@ export class SkillsService {
     return `This action returns all skills`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} skill`;
   }
 

@@ -36,7 +36,7 @@ export class UsersService {
     return this.usersRepository.updateMe(userId, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} user`;
   }
 }

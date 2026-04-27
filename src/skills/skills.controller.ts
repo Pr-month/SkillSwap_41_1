@@ -19,6 +19,7 @@ import { SkillsService } from './skills.service';
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
+  @UseGuards(AccessTokenGuard)
   @Post()
   create(@Body() createSkillDto: CreateSkillDto, @Req() req: IRequestWithUser) {
     return this.skillsService.create(createSkillDto, req.user.sub);
@@ -31,7 +32,7 @@ export class SkillsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.skillsService.findOne(+id);
+    return this.skillsService.findOne(id);
   }
 
   @UseGuards(AccessTokenGuard)
