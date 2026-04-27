@@ -4,8 +4,14 @@ import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class SkillsService {
@@ -14,7 +20,7 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
-  ) { }
+  ) {}
 
   async create(dto: CreateSkillDto, ownerId: string) {
     const category = await this.categoriesRepository.findOne({
@@ -69,7 +75,26 @@ export class SkillsService {
     return this.skillsRepository.save(skill);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} skill`;
+  async remove(id: string, userId: string) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: { owner: true },
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    if (skill.owner.id !== userId) {
+      throw new ForbiddenException('Вы не можете удалить этот навык');
+    }
+
+    for (const image of skill.images) {
+      const filePath = join(process.cwd(), image);
+      await fs.unlink(filePath).catch(() => null);
+    }
+
+    await this.skillsRepository.remove(skill);
+    return { message: 'Навык удален' };
   }
 }
