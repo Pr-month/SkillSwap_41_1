@@ -28,8 +28,8 @@ export class UsersService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: string) {
+    return this.usersRepository.findById(id);
   }
 
   async updateMe(userId: string, dto: UpdateUserDto) {
