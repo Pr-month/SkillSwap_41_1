@@ -4,14 +4,12 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UsersRepository } from '../repository/users.repository';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    private readonly usersRepository: UsersRepository,
   ) {}
 
   create(createUserDto: CreateUserDto) {
@@ -32,8 +30,27 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  async updateMe(userId: string, dto: UpdateUserDto) {
-    return this.usersRepository.updateMe(userId, dto);
+  async findById(id: string): Promise<User | null> {
+    return this.userRepo.findOne({
+      where: { id },
+      relations: {
+        skills: true,
+        wantToLearn: true,
+        favoriteSkills: true,
+      },
+    });
+  }
+
+  async updateMe(id: string, dto: UpdateUserDto): Promise<User> {
+    const user = await this.findById(id);
+
+    if (!user) {
+      throw new Error('Пользователь не найден');
+    }
+
+    Object.assign(user, dto);
+
+    return this.userRepo.save(user);
   }
 
   remove(id: number) {
