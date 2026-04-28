@@ -1,15 +1,13 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../app.module';
 import { DataSource } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../users/entities/enums/users.enums';
 import { appConfig, IAppConfig } from '../config/app.config';
+import { dbConfig } from '../config/db.config';
 
 async function seedAdmin() {
-  const app = await NestFactory.createApplicationContext(AppModule);
-  const dataSource = app.get(DataSource);
-  const config: IAppConfig = app.get(appConfig.KEY);
+  const dataSource = new DataSource(dbConfig());
+  const config: IAppConfig = appConfig();
 
   try {
     const userRepository = dataSource.getRepository(User);
@@ -39,7 +37,7 @@ async function seedAdmin() {
     console.error('Error seeding admin:', error);
     throw error;
   } finally {
-    await app.close();
+    await dataSource.destroy();
     console.log('Seeding admin complete.');
   }
 }

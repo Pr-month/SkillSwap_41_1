@@ -1,15 +1,13 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AppModule } from '../app.module';
-import { NestFactory } from '@nestjs/core';
-import { appConfig, IAppConfig } from 'src/config/app.config';
-import { User } from 'src/users/entities/user.entity';
+import { appConfig, IAppConfig } from '../config/app.config';
+import { User } from '../users/entities/user.entity';
 import { testUsers } from './user.array';
+import { dbConfig } from '../config/db.config';
 
 async function seedUsers() {
-  const app = await NestFactory.createApplicationContext(AppModule);
-  const dataSource = app.get(DataSource);
-  const config: IAppConfig = app.get(appConfig.KEY);
+  const dataSource = new DataSource(dbConfig());
+  const config: IAppConfig = appConfig();
 
   try {
     const userRepository = dataSource.getRepository(User);
@@ -49,7 +47,7 @@ async function seedUsers() {
     console.error('Error seeding users:', error);
     throw error;
   } finally {
-    await app.close();
+    await dataSource.destroy();
     console.log('Seeding users completed.');
   }
 }
