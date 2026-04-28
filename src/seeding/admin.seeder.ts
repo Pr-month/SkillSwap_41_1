@@ -37,8 +37,10 @@ async function seedAdmin() {
     console.log('Admin created with email:', admin.email);
   } catch (error) {
     console.error('Error seeding admin:', error);
+    throw error;
   } finally {
     await app.close();
+    console.log('Seeding admin complete.');
   }
 }
 
