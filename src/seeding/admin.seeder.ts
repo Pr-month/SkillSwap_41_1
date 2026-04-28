@@ -10,6 +10,7 @@ async function seedAdmin() {
   const config: IAppConfig = appConfig();
 
   try {
+    await dataSource.initialize();
     const userRepository = dataSource.getRepository(User);
     const existingAdmin = await userRepository.findOne({
       where: { email: process.env.ADMIN_EMAIL || 'admin@admin.com' },

@@ -10,6 +10,7 @@ async function seedUsers() {
   const config: IAppConfig = appConfig();
 
   try {
+    await dataSource.initialize();
     const userRepository = dataSource.getRepository(User);
 
     for (const userData of testUsers) {
