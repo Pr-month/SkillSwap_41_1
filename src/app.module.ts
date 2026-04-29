@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -23,10 +21,6 @@ import { CategoriesModule } from './categories/categories.module';
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
       useFactory: (db: ConfigType<typeof dbConfig>) => db,
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads',
     }),
     AuthModule,
     FilesModule,

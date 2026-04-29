@@ -40,6 +40,8 @@ export class AuthController {
 
     this.authService.setAuthCookies(res, tokens);
     const { password, refreshToken, ...result } = user;
+    void password;
+    void refreshToken;
 
     return result;
   }

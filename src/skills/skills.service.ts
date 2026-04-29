@@ -20,6 +20,8 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async create(dto: CreateSkillDto, ownerId: string) {
@@ -96,5 +98,40 @@ export class SkillsService {
 
     await this.skillsRepository.remove(skill);
     return { message: 'Навык удален' };
+  }
+
+  async removeFromFavorite(skillId: string, userId: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: { favoriteSkills: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const skill = await this.skillsRepository.findOne({
+      where: { id: skillId },
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    const favoriteSkillExists = user.favoriteSkills.some(
+      (favoriteSkill) => favoriteSkill.id === skill.id,
+    );
+
+    if (!favoriteSkillExists) {
+      throw new NotFoundException('Навык не найден в избранном');
+    }
+
+    user.favoriteSkills = user.favoriteSkills.filter(
+      (favoriteSkill) => favoriteSkill.id !== skill.id,
+    );
+
+    await this.usersRepository.save(user);
+
+    return { message: 'Навык удален из избранного' };
   }
 }

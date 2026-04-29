@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class FilesService {
-  createFileUrl(file: Express.Multer.File): string {
+  createFileUrl(file: { filename: string }): string {
     return `/uploads/${file.filename}`;
   }
 }
