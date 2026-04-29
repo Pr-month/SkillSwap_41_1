@@ -13,6 +13,7 @@ export class UsersService {
   ) {}
 
   create(createUserDto: CreateUserDto) {
+    void createUserDto;
     return 'This action adds a new user';
   }
 
@@ -27,7 +28,7 @@ export class UsersService {
   }
 
   findOne(id: string) {
-    return this.usersRepository.findById(id);
+    return this.findById(id);
   }
 
   async findById(id: string): Promise<User | null> {

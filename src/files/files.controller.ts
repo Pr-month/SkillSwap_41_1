@@ -14,7 +14,7 @@ export class FilesController {
 
   @Post()
   @UseInterceptors(FileInterceptor('file', multerConfig))
-  upload(@UploadedFile() file: Express.Multer.File) {
+  upload(@UploadedFile() file: { filename: string }) {
     return { url: this.filesService.createFileUrl(file) };
   }
 }

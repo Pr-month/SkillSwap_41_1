@@ -1,5 +1,6 @@
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
+import { File as MulterFile } from 'multer';
 import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
 
@@ -8,7 +9,7 @@ const storage = diskStorage({
   destination: './public/uploads',
   filename: (
     _req,
-    file: Express.Multer.File,
+    file: MulterFile,
     cb: (error: Error | null, filename: string) => void,
   ) => {
     const uniqueName = uuid();
@@ -26,7 +27,7 @@ const allowed = ['image/jpeg', 'image/png', 'image/webp'];
 
 const fileFilter = (
   _req: Request,
-  file: Express.Multer.File,
+  file: MulterFile,
   cb: (arg0: Error | null, arg1: boolean) => void,
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
