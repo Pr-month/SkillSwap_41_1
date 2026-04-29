@@ -29,7 +29,7 @@ export class UsersController {
 
   @Get('me')
   getMe(@Req() req: IRequestWithUser) {
-    return this.usersService.findOne(req.user.sub);
+    return this.usersService.findById(req.user.sub);
   }
 
   @Get(':id')
