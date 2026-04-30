@@ -28,6 +28,7 @@ export class UsersController {
   findAll() {
     return this.usersService.findAll();
   }
+
   @UseGuards(AccessTokenGuard)
   @Get('me')
   getMe(@Req() req: IRequestWithUser) {
@@ -39,9 +40,10 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.updateMe(id, updateUserDto);
+  @UseGuards(AccessTokenGuard)
+  @Patch('me')
+  update(@Req() req: IRequestWithUser, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.updateMe(req.user.sub, updateUserDto);
   }
 
   @Delete(':id')
