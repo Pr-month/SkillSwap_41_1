@@ -1,9 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { IRequestWithUser } from 'src/auth/auth.types';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Request } from './entities/request.entity';
+import { UserRole } from 'src/users/entities/enums/users.enums';
 
 @Injectable()
 export class RequestsService {
+  constructor(
+    @InjectRepository(Request)
+    private readonly requestRepository: Repository<Request>,
+  ) {}
   create(createRequestDto: CreateRequestDto) {
     return 'This action adds a new request';
   }
@@ -20,7 +33,20 @@ export class RequestsService {
     return `This action updates a #${id} request`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} request`;
+  async remove(id: string, req: IRequestWithUser) {
+    const request = await this.requestRepository.findOneBy({ id });
+    if (!request) {
+      throw new NotFoundException('Request not found');
+    }
+
+    if (
+      request.sender.id !== req.user.sub ||
+      req.user.role !== UserRole.ADMIN
+    ) {
+      throw new UnauthorizedException(
+        'You are not authorized to delete this request',
+      );
+    }
+    await this.requestRepository.remove(request);
   }
 }
