@@ -6,6 +6,7 @@ import { User } from '../users/entities/user.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { GetSkillsQueryDto } from './dto/GetSkillsQueryDto';
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -21,6 +22,8 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async create(dto: CreateSkillDto, ownerId: string) {
@@ -111,5 +114,36 @@ export class SkillsService {
 
     await this.skillsRepository.remove(skill);
     return { message: 'Навык удален' };
+  }
+
+  async addToFavorite(id: string, userId: string) {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Skill not found');
+    }
+
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: { favoriteSkills: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isAlreadyFavorite = user.favoriteSkills.some(
+      (favoriteSkill) => favoriteSkill.id === skill.id,
+    );
+
+    if (isAlreadyFavorite) {
+      throw new ConflictException('Skill is already in favorites');
+    }
+
+    user.favoriteSkills.push(skill);
+
+    return this.usersRepository.save(user);
   }
 }
