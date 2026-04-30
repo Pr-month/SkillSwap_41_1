@@ -4,6 +4,7 @@ import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { GetSkillsQueryDto } from './dto/GetSkillsQueryDto';
 import {
   ForbiddenException,
   Injectable,
@@ -40,8 +41,22 @@ export class SkillsService {
     return this.skillsRepository.save(skill);
   }
 
-  findAll() {
-    return `This action returns all skills`;
+  async findAll(query: GetSkillsQueryDto) {
+    const { page, limit } = query;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.skillsRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      page,
+      totalPages,
+    };
   }
 
   findOne(id: string) {
