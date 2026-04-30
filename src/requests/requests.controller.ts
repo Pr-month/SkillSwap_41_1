@@ -1,7 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { IRequestWithUser } from '../auth/auth.types';
 
 @Controller('requests')
 export class RequestsController {
@@ -27,8 +41,11 @@ export class RequestsController {
     return this.requestsService.update(+id, updateRequestDto);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requestsService.remove(+id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
+    await this.requestsService.remove(id, req);
+    return { message: 'Request deleted successfully' };
   }
 }

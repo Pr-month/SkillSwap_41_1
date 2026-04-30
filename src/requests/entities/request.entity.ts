@@ -7,14 +7,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Skill } from '../../skills/entities/skill.entity';
-
-export enum RequestStatus {
-  PENDING = 'pending',
-  ACCEPTED = 'accepted',
-  REJECTED = 'rejected',
-  IN_PROGRESS = 'inProgress',
-  DONE = 'done',
-}
+import { RequestStatus } from './request.enum';
 
 @Entity('requests')
 export class Request {
