@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './common/filters/all-exception.filter';
 import { appConfig, IAppConfig } from './config/app.config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,13 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  const simpleConfigForSwagger = new DocumentBuilder()
+    .setTitle('SkillSwapAPI')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, simpleConfigForSwagger);
+  SwaggerModule.setup('api', app, document); 
+  
   const { port } = app.get<IAppConfig>(appConfig.KEY);
   await app.listen(port);
 }
