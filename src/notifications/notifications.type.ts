@@ -8,11 +8,14 @@ export enum NotificationType {
 
 export interface NotificationPayload {
   type: NotificationType;
-  skillName: string;
+  skillName: string; // название навыка
   fromUser: {
-    id: string;
-    name: string;
+    id: string; // id отправителя
+    name: string; // имя отправителя
   };
+  requestId?: string; // id заявки, если нужно
+  message?: string; // сообщение в нотификацию, если нужно
+  timeStamp: Date; // время создания
 }
 
 export interface SocketWithUser extends Socket {

@@ -29,9 +29,10 @@ export class WsJwtGuard implements CanActivate {
         secret: this.jwtConf.accessSecret,
       });
       client.data.user = payload;
+      return true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new WsException('Invalid token');
     }
-    return true;
   }
 }

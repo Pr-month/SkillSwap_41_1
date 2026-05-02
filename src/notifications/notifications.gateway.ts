@@ -27,13 +27,15 @@ export class NotificationsGateway
         return;
       }
       await client.join(userId);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       client.disconnect();
     }
   }
-  handleDisconnect(_client: SocketWithUser) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleDisconnect(client: SocketWithUser) {}
 
   notifyUser(userId: string, payload: NotificationPayload) {
-    this.server.to(userId).emit('notifyNewRequest', payload);
+    this.server.to(userId).emit('notificateNewRequest', payload);
   }
 }
