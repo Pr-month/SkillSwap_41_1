@@ -37,11 +37,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, tokens } = await this.authService.login(loginDto);
-
     this.authService.setAuthCookies(res, tokens);
-    const { password, refreshToken, ...result } = user;
-
-    return result;
+    return { user };
   }
 
   @Post('logout')
