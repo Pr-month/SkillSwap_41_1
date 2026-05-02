@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from './multer.config';
-import { FilesService } from './files.servise';
+import { FilesService } from './files.service';
 
 @Controller('files')
 export class FilesController {
