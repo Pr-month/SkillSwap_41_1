@@ -8,8 +8,7 @@ import {
 } from '@nestjs/websockets';
 
 import { NotificationPayload, SocketWithUser } from './notifications.type';
-import { UseGuards } from '@nestjs/common';
-import { WsJwtGuard } from './ws-jwt.guard';
+import { WsJwtService } from './guards/ws-jwt.guard';
 
 @WebSocketGateway({ cors: true, namespace: 'notifications' })
 export class NotificationsGateway
@@ -18,17 +17,19 @@ export class NotificationsGateway
   @WebSocketServer()
   server: Server;
 
-  @UseGuards(WsJwtGuard)
+  constructor(private readonly wsJwtService: WsJwtService) {}
+
   async handleConnection(@ConnectedSocket() client: SocketWithUser) {
     try {
-      const userId = client.data.user.sub;
-      if (!userId) {
+      const payload = this.wsJwtService.validate(client);
+      if (!payload || !payload.sub) {
         client.disconnect();
         return;
       }
+      client.data.user = payload;
+      const userId = payload.sub;
       await client.join(userId);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       client.disconnect();
     }
   }
