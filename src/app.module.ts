@@ -27,8 +27,8 @@ import { NotificationsModule } from './notifications/notifications.module';
       useFactory: (db: ConfigType<typeof dbConfig>) => db,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads',
+      rootPath: join(process.cwd(), 'public', 'uploads'),
+      serveRoot: '/public/uploads',
     }),
     AuthModule,
     FilesModule,
