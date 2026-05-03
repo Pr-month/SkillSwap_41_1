@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { Response } from 'express';
 
 @Controller('auth')
@@ -49,7 +50,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userId = req.user.sub;
-
     await this.authService.logout(userId);
 
     res.clearCookie('accessToken');
@@ -58,14 +58,17 @@ export class AuthController {
     return { message: 'Вы успешно вышли из аккаунта' };
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Req() req: IRequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refreshToken as string;
-    const { user, tokens } = await this.authService.refresh(refreshToken);
+    const { user, tokens } = await this.authService.refresh(
+      req.user.sub,
+      req.user.refreshToken!,
+    );
     this.authService.setAuthCookies(res, tokens);
     return { message: 'Tokens refreshed successfully', user };
   }

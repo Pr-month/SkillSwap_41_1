@@ -5,6 +5,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: UserRole;
+  refreshToken?: string;
 }
 
 export interface IRequestWithUser extends Request {
