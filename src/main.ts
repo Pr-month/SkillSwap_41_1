@@ -23,8 +23,8 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, simpleConfigForSwagger);
-  SwaggerModule.setup('api', app, document); 
-  
+  SwaggerModule.setup('api', app, document);
+
   const { port } = app.get<IAppConfig>(appConfig.KEY);
   await app.listen(port);
 }
