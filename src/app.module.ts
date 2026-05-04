@@ -14,6 +14,7 @@ import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/file.module';
 import { CategoriesModule } from './categories/categories.module';
 import { RequestsModule } from './requests/requests.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { RequestsModule } from './requests/requests.module';
     SkillsModule,
     CategoriesModule,
     RequestsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,7 +6,9 @@ import {
   HttpStatus,
   PayloadTooLargeException,
 } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 import { Response } from 'express';
+import { SocketWithUser } from 'src/notifications/notifications.type';
 import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 
 @Catch()
@@ -40,6 +42,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       response.status(exception.getStatus()).json(exception.getResponse());
+      return;
+    }
+
+    if (exception instanceof WsException) {
+      const client = host.switchToWs().getClient<SocketWithUser>();
+      const error = exception.getError();
+
+      client.emit('exception', {
+        status: 'error',
+        message: error instanceof Object ? error : { message: error },
+      });
       return;
     }
 
