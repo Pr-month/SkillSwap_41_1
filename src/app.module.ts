@@ -13,6 +13,7 @@ import { dbConfig } from './config/db.config';
 import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/file.module';
 import { CategoriesModule } from './categories/categories.module';
+import { RequestsModule } from './requests/requests.module';
 
 @Module({
   imports: [
@@ -25,14 +26,15 @@ import { CategoriesModule } from './categories/categories.module';
       useFactory: (db: ConfigType<typeof dbConfig>) => db,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads',
+      rootPath: join(process.cwd(), 'public', 'uploads'),
+      serveRoot: '/public/uploads',
     }),
     AuthModule,
     FilesModule,
     UsersModule,
     SkillsModule,
     CategoriesModule,
+    RequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

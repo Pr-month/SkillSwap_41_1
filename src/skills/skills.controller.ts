@@ -6,12 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { IRequestWithUser } from '../auth/auth.types';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { GetSkillsQueryDto } from './dto/GetSkillsQueryDto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { SkillsService } from './skills.service';
 
@@ -26,8 +28,8 @@ export class SkillsController {
   }
 
   @Get()
-  findAll() {
-    return this.skillsService.findAll();
+  findAll(@Query() query: GetSkillsQueryDto) {
+    return this.skillsService.findAll(query);
   }
 
   @Get(':id')
@@ -49,5 +51,11 @@ export class SkillsController {
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
     return this.skillsService.remove(id, req.user.sub);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post(':id/favorite')
+  addToFavorite(@Param('id') id: string, @Req() req: IRequestWithUser) {
+    return this.skillsService.addToFavorite(id, req.user.sub);
   }
 }
