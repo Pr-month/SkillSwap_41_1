@@ -30,6 +30,7 @@ export class AuthService {
     private readonly jwtConfigService: IJwtConfig,
     private readonly jwtService: JwtService,
   ) {}
+
   async register(createAuthDto: RegisterDto) {
     const user = this.userRepository.create({
       name: createAuthDto.name,
@@ -66,7 +67,10 @@ export class AuthService {
     await this.userRepository.save(user);
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
-    user.refreshToken = tokens.refreshToken;
+    user.refreshToken = await bcrypt.hash(
+      tokens.refreshToken,
+      this.configService.hashSalt,
+    );
     await this.userRepository.save(user);
     return {
       user,
@@ -74,30 +78,24 @@ export class AuthService {
     };
   }
 
-  async refresh(oldRefreshToken: string) {
-    if (!oldRefreshToken) {
-      throw new UnauthorizedException('Refresh token is required');
-    }
-
-    let payload: JwtPayload;
-    try {
-      payload = await this.jwtService.verifyAsync(oldRefreshToken, {
-        secret: this.jwtConfigService.refreshSecret,
-      });
-    } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
-    }
-
+  async refresh(userId: string, oldRefreshToken: string) {
     const user = await this.userRepository.findOne({
-      where: { id: payload.sub },
+      where: { id: userId },
     });
+    const isTokenValid = user?.refreshToken
+      ? await bcrypt.compare(oldRefreshToken, user.refreshToken)
+      : false;
 
-    if (!user || user.refreshToken !== oldRefreshToken) {
+    if (!user || !user.refreshToken || !isTokenValid) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
+
     const tokens = this.generateTokens(user.id, user.email, user.role);
 
-    user.refreshToken = tokens.refreshToken;
+    user.refreshToken = await bcrypt.hash(
+      tokens.refreshToken,
+      this.configService.hashSalt,
+    );
     await this.userRepository.save(user);
 
     return { user, tokens };
@@ -123,7 +121,10 @@ export class AuthService {
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
 
-    user.refreshToken = tokens.refreshToken;
+    user.refreshToken = await bcrypt.hash(
+      tokens.refreshToken,
+      this.configService.hashSalt,
+    );
     await this.userRepository.save(user);
 
     return { user, tokens };
