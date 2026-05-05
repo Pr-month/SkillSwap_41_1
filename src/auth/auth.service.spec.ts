@@ -10,7 +10,6 @@ import { UserRole } from '../users/entities/enums/users.enums';
 import { appConfig } from '../config/app.config';
 import { jwtConfig } from '../config/jwt.config';
 import { Category } from '../categories/entities/category.entity';
-import { Skill } from '../skills/entities/skill.entity';
 import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
 
@@ -43,10 +42,6 @@ describe('AuthService', () => {
         },
         {
           provide: getRepositoryToken(Category),
-          useValue: {},
-        },
-        {
-          provide: getRepositoryToken(Skill),
           useValue: {},
         },
         {
