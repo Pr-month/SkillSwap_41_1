@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { CitiesService } from './cities.service';
 import { CreateCityDto } from './dto/create-city.dto';
@@ -16,6 +18,7 @@ export class CitiesController {
   constructor(private readonly citiesService: CitiesService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() createCityDto: CreateCityDto) {
     return this.citiesService.create(createCityDto);
   }
