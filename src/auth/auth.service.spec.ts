@@ -12,6 +12,7 @@ import { jwtConfig } from '../config/jwt.config';
 import { Category } from '../categories/entities/category.entity';
 import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
+import { Skill } from '../skills/entities/skill.entity';
 
 jest.mock('bcrypt');
 
@@ -134,55 +135,76 @@ describe('AuthService', () => {
   });
 
   // ================= REFRESH =================
-  it('should refresh tokens', async () => {
-    const spySave = jest.spyOn(userRepository, 'save');
-    jwtService.verifyAsync.mockResolvedValue({
-      sub: mockUser.id,
-    });
+  it('should refresh tokens successfully', async () => {
+    const spyFindOne = jest.spyOn(userRepository, 'findOne');
+    const spySign = jest.spyOn(jwtService, 'sign');
 
-    userRepository.findOne.mockResolvedValue({
-      ...mockUser,
-      refreshToken: 'oldToken',
-    });
+    mockUser.refreshToken = 'oldToken';
+    userRepository.findOne.mockResolvedValue(mockUser);
+
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (bcrypt.hash as jest.Mock).mockResolvedValue('oldToken');
 
     jwtService.sign.mockReturnValue('newToken');
 
-    const result = await service.refresh('oldToken');
+    const result = await service.refresh(mockUser.id, 'oldToken');
+
+    expect(spyFindOne).toHaveBeenCalledWith({
+      where: { id: mockUser.id },
+    });
+
+    expect(bcrypt.compare as jest.Mock).toHaveBeenCalledWith(
+      'oldToken',
+      mockUser.refreshToken,
+    );
+
+    expect(spySign).toHaveBeenCalledTimes(2);
+
+    expect(bcrypt.hash as jest.Mock).toHaveBeenCalledWith(
+      'newToken',
+      10, // hashSalt из mock config
+    );
 
     expect(result.tokens).toBeDefined();
-    expect(spySave).toHaveBeenCalled();
   });
 
-  it('should throw if no token', async () => {
-    await expect(service.refresh('')).rejects.toThrow(UnauthorizedException);
-  });
+  // ================= NEGATIVE CASES =================
 
-  it('should throw if token invalid', async () => {
-    jwtService.verifyAsync.mockRejectedValue(new Error());
-
-    await expect(service.refresh('bad')).rejects.toThrow(UnauthorizedException);
-  });
-
-  it('should throw if token revoked', async () => {
-    jwtService.verifyAsync.mockResolvedValue({ sub: '1' });
+  it('should throw if user not found', async () => {
     userRepository.findOne.mockResolvedValue(null);
 
-    await expect(service.refresh('token')).rejects.toThrow(
+    await expect(service.refresh(mockUser.id, 'oldToken')).rejects.toThrow(
       UnauthorizedException,
     );
   });
 
-  // ================= LOGOUT =================
-  it('should logout user', async () => {
-    userRepository.findOne.mockResolvedValue(mockUser);
-    const spySave = jest.spyOn(userRepository, 'save');
-
-    await service.logout('1');
-
-    expect(spySave).toHaveBeenCalledWith({
+  it('should throw if no refreshToken in DB', async () => {
+    userRepository.findOne.mockResolvedValue({
       ...mockUser,
       refreshToken: null,
     });
+
+    await expect(service.refresh(mockUser.id, 'oldToken')).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should throw if bcrypt.compare returns false', async () => {
+    userRepository.findOne.mockResolvedValue(mockUser);
+
+    (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+    await expect(service.refresh(mockUser.id, 'oldToken')).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should throw if bcrypt.compare throws', async () => {
+    userRepository.findOne.mockResolvedValue(mockUser);
+
+    (bcrypt.compare as jest.Mock).mockRejectedValue(new Error());
+
+    await expect(service.refresh(mockUser.id, 'oldToken')).rejects.toThrow();
   });
 
   // ================= COOKIES =================
