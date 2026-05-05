@@ -13,40 +13,12 @@ export class RequestsService {
   findOutgoing(userId: string) {
     return this.requestsRepository
       .createQueryBuilder('request')
-      .leftJoin('request.sender', 'sender')
-      .leftJoin('request.receiver', 'receiver')
-      .leftJoin('request.offeredSkill', 'offeredSkill')
-      .leftJoin('offeredSkill.category', 'offeredCategory')
-      .leftJoin('request.requestedSkill', 'requestedSkill')
-      .leftJoin('requestedSkill.category', 'requestedCategory')
-      .select([
-        'request.id',
-        'request.createdAt',
-        'request.status',
-        'request.isRead',
-        'sender.id',
-        'sender.name',
-        'sender.email',
-        'sender.avatar',
-        'sender.role',
-        'receiver.id',
-        'receiver.name',
-        'receiver.email',
-        'receiver.avatar',
-        'receiver.role',
-        'offeredSkill.id',
-        'offeredSkill.title',
-        'offeredSkill.description',
-        'offeredSkill.images',
-        'offeredCategory.id',
-        'offeredCategory.name',
-        'requestedSkill.id',
-        'requestedSkill.title',
-        'requestedSkill.description',
-        'requestedSkill.images',
-        'requestedCategory.id',
-        'requestedCategory.name',
-      ])
+      .leftJoinAndSelect('request.sender', 'sender')
+      .leftJoinAndSelect('request.receiver', 'receiver')
+      .leftJoinAndSelect('request.offeredSkill', 'offeredSkill')
+      .leftJoinAndSelect('offeredSkill.category', 'offeredCategory')
+      .leftJoinAndSelect('request.requestedSkill', 'requestedSkill')
+      .leftJoinAndSelect('requestedSkill.category', 'requestedCategory')
       .where('sender.id = :userId', { userId })
       .orderBy('request.createdAt', 'DESC')
       .getMany();
