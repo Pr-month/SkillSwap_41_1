@@ -10,7 +10,6 @@ import { UserRole } from '../users/entities/enums/users.enums';
 import { appConfig } from '../config/app.config';
 import { jwtConfig } from '../config/jwt.config';
 import { Category } from '../categories/entities/category.entity';
-import { Skill } from '../skills/entities/skill.entity';
 import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
 
@@ -43,10 +42,6 @@ describe('AuthService', () => {
         },
         {
           provide: getRepositoryToken(Category),
-          useValue: {},
-        },
-        {
-          provide: getRepositoryToken(Skill),
           useValue: {},
         },
         {
@@ -152,27 +147,31 @@ describe('AuthService', () => {
 
     jwtService.sign.mockReturnValue('newToken');
 
-    const result = await service.refresh('oldToken');
+    const result = await service.refresh(mockUser.id, 'oldToken');
 
     expect(result.tokens).toBeDefined();
     expect(spySave).toHaveBeenCalled();
   });
 
   it('should throw if no token', async () => {
-    await expect(service.refresh('')).rejects.toThrow(UnauthorizedException);
+    await expect(service.refresh(mockUser.id, '')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('should throw if token invalid', async () => {
     jwtService.verifyAsync.mockRejectedValue(new Error());
 
-    await expect(service.refresh('bad')).rejects.toThrow(UnauthorizedException);
+    await expect(service.refresh(mockUser.id, 'bad')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('should throw if token revoked', async () => {
     jwtService.verifyAsync.mockResolvedValue({ sub: '1' });
     userRepository.findOne.mockResolvedValue(null);
 
-    await expect(service.refresh('token')).rejects.toThrow(
+    await expect(service.refresh(mockUser.id, 'token')).rejects.toThrow(
       UnauthorizedException,
     );
   });
