@@ -46,10 +46,6 @@ describe('AuthService', () => {
           useValue: {},
         },
         {
-          provide: getRepositoryToken(Skill),
-          useValue: {},
-        },
-        {
           provide: JwtService,
           useValue: {
             sign: jest.fn(),
