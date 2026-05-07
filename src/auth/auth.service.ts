@@ -1,15 +1,19 @@
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { User } from './../users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { appConfig, IAppConfig } from './../config/app.config';
 import { JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserRole } from '../users/entities/enums/users.enums';
-import { Skill } from '../skills/entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response, CookieOptions } from 'express';
@@ -22,14 +26,13 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(Skill)
-    private readonly skillRepository: Repository<Skill>,
     @Inject(appConfig.KEY)
     private readonly configService: IAppConfig,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfigService: IJwtConfig,
     private readonly jwtService: JwtService,
   ) {}
+
   async register(createAuthDto: RegisterDto) {
     const user = this.userRepository.create({
       name: createAuthDto.name,
@@ -45,28 +48,27 @@ export class AuthService {
       ),
       role: UserRole.USER,
     });
-    // TODO: Закомментировано до реализации скиллов и категорий
-    //
-    // const skill = this.skillRepository.create({
-    //   title: createAuthDto.skills.title,
-    //   description: createAuthDto.skills.description,
-    //   category: createAuthDto.skills.category,
-    //   images: createAuthDto.skills.images,
-    //   owner: user,
-    // });
 
-    // const category = await this.categoryRepository.findOne({
-    //   where: { id: createAuthDto.wantToLearn.id },
-    // });
-    // if (!category) throw new BadRequestException('Category not found');
-
-    // user.wantToLearn = [category];
-    // user.skills = [skill];
+    if (createAuthDto.wantToLearn) {
+      const categoryIds = createAuthDto.wantToLearn;
+      const categories = await this.categoryRepository.findBy({
+        id: In(categoryIds),
+      });
+      if (categories.length !== categoryIds.length) {
+        throw new BadRequestException(
+          'One or more categories not found or invalid.',
+        );
+      }
+      user.wantToLearn = categories;
+    }
 
     await this.userRepository.save(user);
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
-    user.refreshToken = tokens.refreshToken;
+    user.refreshToken = await bcrypt.hash(
+      tokens.refreshToken,
+      this.configService.hashSalt,
+    );
     await this.userRepository.save(user);
     return {
       user,
@@ -74,30 +76,24 @@ export class AuthService {
     };
   }
 
-  async refresh(oldRefreshToken: string) {
-    if (!oldRefreshToken) {
-      throw new UnauthorizedException('Refresh token is required');
-    }
-
-    let payload: JwtPayload;
-    try {
-      payload = await this.jwtService.verifyAsync(oldRefreshToken, {
-        secret: this.jwtConfigService.refreshSecret,
-      });
-    } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
-    }
-
+  async refresh(userId: string, oldRefreshToken: string) {
     const user = await this.userRepository.findOne({
-      where: { id: payload.sub },
+      where: { id: userId },
     });
+    const isTokenValid = user?.refreshToken
+      ? await bcrypt.compare(oldRefreshToken, user.refreshToken)
+      : false;
 
-    if (!user || user.refreshToken !== oldRefreshToken) {
+    if (!user || !user.refreshToken || !isTokenValid) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
+
     const tokens = this.generateTokens(user.id, user.email, user.role);
 
-    user.refreshToken = tokens.refreshToken;
+    user.refreshToken = await bcrypt.hash(
+      tokens.refreshToken,
+      this.configService.hashSalt,
+    );
     await this.userRepository.save(user);
 
     return { user, tokens };
@@ -123,7 +119,10 @@ export class AuthService {
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
 
-    user.refreshToken = tokens.refreshToken;
+    user.refreshToken = await bcrypt.hash(
+      tokens.refreshToken,
+      this.configService.hashSalt,
+    );
     await this.userRepository.save(user);
 
     return { user, tokens };

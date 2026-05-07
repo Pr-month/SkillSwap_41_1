@@ -10,10 +10,13 @@ describe('SkillsController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    addToFavorite: jest.fn(),
     removeFromFavorite: jest.fn(),
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SkillsController],
       providers: [

@@ -22,7 +22,8 @@ export class User {
   @Column({ type: 'varchar', length: 50, unique: true })
   email!: string;
 
-  @Column({ type: 'varchar', length: 60 })
+  @Column({ type: 'varchar', length: 255 })
+  @Exclude()
   password!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
@@ -55,5 +56,6 @@ export class User {
   role!: UserRole;
 
   @Column({ type: 'varchar', length: 256, nullable: true })
+  @Exclude()
   refreshToken!: string | null;
 }
