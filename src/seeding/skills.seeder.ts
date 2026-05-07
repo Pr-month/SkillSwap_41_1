@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
 import { SkillsData } from './data/skills.array';
-import { Skill } from 'src/skills/entities/skill.entity';
+import { Skill } from '../skills/entities/skill.entity';
 import { Category } from 'src/categories/entities/category.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 
 export async function seedSkills(dataSource: DataSource) {
   const skillRepository = dataSource.getRepository(Skill);
@@ -49,6 +49,4 @@ export async function seedSkills(dataSource: DataSource) {
 
     await skillRepository.save(newSkill);
   }
-
-  console.log('Skills seeded successfully');
 }

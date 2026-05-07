@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { appConfig, IAppConfig } from '../config/app.config';
 import { User } from '../users/entities/user.entity';
 import { testUsers } from './data/user.array';
-import { City } from '../city/entities/city.entities';
+import { City } from '../cities/entities/city.entity';
 
 export async function seedUsers(dataSource: DataSource) {
   const config: IAppConfig = appConfig();

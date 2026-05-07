@@ -1,4 +1,4 @@
-import { City } from 'src/city/entities/city.entities';
+import { City } from '../cities/entities/city.entity';
 import { DataSource } from 'typeorm';
 import { citiesData } from './data/cities.array';
 
@@ -7,19 +7,9 @@ export async function seedCities(dataSource: DataSource) {
 
   const cities = citiesData.map((city) => ({
     name: city.name,
-    district: city.district,
-    subject: city.subject,
-    population: Number(city.population),
-    coords: {
-      lat: Number(city.coords.lat),
-      lon: Number(city.coords.lon),
-    },
   }));
 
-  await cityRepository.upsert(cities, {
-    conflictPaths: ['name', 'subject'],
-    skipUpdateIfNoValuesChanged: true,
-  });
+  await cityRepository.save(cities);
 
   console.log(`Seeded cities: ${cities.length}`);
 }
