@@ -33,6 +33,29 @@ describe('RequestsController', () => {
     expect(controller).toBeDefined();
   });
 
+  it('delegates request creation to the service', async () => {
+    requestsServiceMock.create.mockResolvedValue({ id: 'request-1' });
+
+    const result = await controller.create(
+      {
+        receiverId: 'receiver-1',
+        offeredSkillId: 'skill-1',
+        requestedSkillId: 'skill-2',
+      },
+      { user: { sub: 'sender-1' } } as never,
+    );
+
+    expect(requestsServiceMock.create).toHaveBeenCalledWith(
+      {
+        receiverId: 'receiver-1',
+        offeredSkillId: 'skill-1',
+        requestedSkillId: 'skill-2',
+      },
+      'sender-1',
+    );
+    expect(result).toEqual({ id: 'request-1' });
+  });
+
   it('delegates outgoing requests retrieval to the service', async () => {
     requestsServiceMock.findOutgoing.mockResolvedValue([{ id: 'request-1' }]);
 

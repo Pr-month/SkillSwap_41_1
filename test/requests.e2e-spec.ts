@@ -15,14 +15,15 @@ import { UserRole } from '../src/users/entities/enums/users.enums';
 describe('RequestsController (e2e)', () => {
   let app: INestApplication<App>;
   const requestsServiceMock = {
+    create: jest.fn(),
     findOutgoing: jest.fn(),
   };
   const accessTokenGuardMock: CanActivate = {
     canActivate(context: ExecutionContext) {
       const req = context.switchToHttp().getRequest<IRequestWithUser>();
       req.user = {
-        sub: 'user-1',
-        email: 'user1@example.com',
+        sub: 'sender-1',
+        email: 'sender@example.com',
         role: UserRole.USER,
       };
       return true;
@@ -53,6 +54,29 @@ describe('RequestsController (e2e)', () => {
     await app.close();
   });
 
+  it('creates a request for the authenticated user', async () => {
+    requestsServiceMock.create.mockResolvedValue({ id: 'request-1' });
+
+    await request(app.getHttpServer())
+      .post('/requests')
+      .send({
+        receiverId: 'receiver-1',
+        offeredSkillId: 'skill-1',
+        requestedSkillId: 'skill-2',
+      })
+      .expect(201)
+      .expect({ id: 'request-1' });
+
+    expect(requestsServiceMock.create).toHaveBeenCalledWith(
+      {
+        receiverId: 'receiver-1',
+        offeredSkillId: 'skill-1',
+        requestedSkillId: 'skill-2',
+      },
+      'sender-1',
+    );
+  });
+
   it('returns outgoing requests for the authenticated user', async () => {
     requestsServiceMock.findOutgoing.mockResolvedValue([{ id: 'request-1' }]);
 
@@ -61,6 +85,6 @@ describe('RequestsController (e2e)', () => {
       .expect(200)
       .expect([{ id: 'request-1' }]);
 
-    expect(requestsServiceMock.findOutgoing).toHaveBeenCalledWith('user-1');
+    expect(requestsServiceMock.findOutgoing).toHaveBeenCalledWith('sender-1');
   });
 });
