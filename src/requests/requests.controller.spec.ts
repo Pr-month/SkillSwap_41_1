@@ -9,6 +9,7 @@ describe('RequestsController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
+    findIncoming: jest.fn(),
     findOutgoing: jest.fn(),
     remove: jest.fn(),
   };
@@ -33,27 +34,16 @@ describe('RequestsController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('delegates request creation to the service', async () => {
-    requestsServiceMock.create.mockResolvedValue({ id: 'request-1' });
+  it('delegates incoming requests lookup to the service', async () => {
+    const incomingRequests = [{ id: 'request-1' }];
+    requestsServiceMock.findIncoming.mockResolvedValue(incomingRequests);
 
-    const result = await controller.create(
-      {
-        receiverId: 'receiver-1',
-        offeredSkillId: 'skill-1',
-        requestedSkillId: 'skill-2',
-      },
-      { user: { sub: 'sender-1' } } as never,
-    );
+    const result = await controller.getIncoming({
+      user: { sub: 'user-1' },
+    } as never);
 
-    expect(requestsServiceMock.create).toHaveBeenCalledWith(
-      {
-        receiverId: 'receiver-1',
-        offeredSkillId: 'skill-1',
-        requestedSkillId: 'skill-2',
-      },
-      'sender-1',
-    );
-    expect(result).toEqual({ id: 'request-1' });
+    expect(requestsServiceMock.findIncoming).toHaveBeenCalledWith('user-1');
+    expect(result).toBe(incomingRequests);
   });
 
   it('delegates outgoing requests retrieval to the service', async () => {

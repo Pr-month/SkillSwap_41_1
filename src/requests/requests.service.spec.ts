@@ -64,43 +64,21 @@ describe('RequestsService', () => {
     expect(service).toBeDefined();
   });
 
-  it('creates a request with pending status and returns the hydrated entity', async () => {
-    usersRepositoryMock.findOne
-      .mockResolvedValueOnce({ id: 'sender-1' })
-      .mockResolvedValueOnce({ id: 'receiver-1' });
-    skillsRepositoryMock.findOne
-      .mockResolvedValueOnce({
-        id: 'skill-1',
-        owner: { id: 'sender-1' },
-        category: { id: 'category-1' },
-      })
-      .mockResolvedValueOnce({
-        id: 'skill-2',
-        owner: { id: 'receiver-1' },
-        category: { id: 'category-2' },
-      });
-    requestsRepositoryMock.create.mockReturnValue({ id: 'request-1' });
-    requestsRepositoryMock.save.mockResolvedValue({ id: 'request-1' });
-    queryBuilderMock.getOneOrFail.mockResolvedValue({ id: 'request-1' });
+  it('returns incoming requests for current receiver', async () => {
+    const incomingRequests = [{ id: 'request-1' }, { id: 'request-2' }];
+    queryBuilderMock.getMany.mockResolvedValue(incomingRequests);
 
-    const result = await service.create(
-      {
-        receiverId: 'receiver-1',
-        offeredSkillId: 'skill-1',
-        requestedSkillId: 'skill-2',
-      },
-      'sender-1',
-    );
+    const result = await service.findIncoming('user-1');
 
-    expect(usersRepositoryMock.findOne).toHaveBeenCalledTimes(2);
-    expect(skillsRepositoryMock.findOne).toHaveBeenCalledTimes(2);
-    expect(requestsRepositoryMock.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'pending',
-        isRead: false,
-      }),
+    expect(queryBuilderMock.where).toHaveBeenCalledWith(
+      'receiver.id = :userId',
+      { userId: 'user-1' },
     );
-    expect(result).toEqual({ id: 'request-1' });
+    expect(queryBuilderMock.orderBy).toHaveBeenCalledWith(
+      'request.createdAt',
+      'DESC',
+    );
+    expect(result).toBe(incomingRequests);
   });
 
   it('returns outgoing requests for the current user ordered by creation date', async () => {

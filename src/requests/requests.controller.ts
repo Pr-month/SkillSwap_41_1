@@ -36,6 +36,12 @@ export class RequestsController {
   }
 
   @UseGuards(AccessTokenGuard)
+  @Get('incoming')
+  getIncoming(@Req() req: IRequestWithUser) {
+    return this.requestsService.findIncoming(req.user.sub);
+  }
+
+  @UseGuards(AccessTokenGuard)
   @Get('outgoing')
   getOutgoing(@Req() req: IRequestWithUser) {
     return this.requestsService.findOutgoing(req.user.sub);
