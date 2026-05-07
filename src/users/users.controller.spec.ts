@@ -8,6 +8,7 @@ describe('UsersController', () => {
     create: jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
+    findById: jest.fn(),
     updateMe: jest.fn(),
     remove: jest.fn(),
   };

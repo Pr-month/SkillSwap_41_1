@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
+import { Skill } from '../skills/entities/skill.entity';
+import { User } from '../users/entities/user.entity';
 import { Request } from './entities/request.entity';
 import { RequestsController } from './requests.controller';
 import { RequestsService } from './requests.service';
-import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Request]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Request, User, Skill]), AuthModule],
   controllers: [RequestsController],
   providers: [RequestsService],
 })

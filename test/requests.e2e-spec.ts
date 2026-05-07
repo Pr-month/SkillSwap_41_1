@@ -16,6 +16,7 @@ describe('RequestsController (e2e)', () => {
   let app: INestApplication<App>;
   const requestsServiceMock = {
     findIncoming: jest.fn(),
+    findOutgoing: jest.fn(),
   };
   const accessTokenGuardMock: CanActivate = {
     canActivate(context: ExecutionContext) {
@@ -63,5 +64,16 @@ describe('RequestsController (e2e)', () => {
       .expect(incomingRequests);
 
     expect(requestsServiceMock.findIncoming).toHaveBeenCalledWith('user-1');
+  });
+
+  it('returns outgoing requests for the authenticated user', async () => {
+    requestsServiceMock.findOutgoing.mockResolvedValue([{ id: 'request-1' }]);
+
+    await request(app.getHttpServer())
+      .get('/requests/outgoing')
+      .expect(200)
+      .expect([{ id: 'request-1' }]);
+
+    expect(requestsServiceMock.findOutgoing).toHaveBeenCalledWith('user-1');
   });
 });

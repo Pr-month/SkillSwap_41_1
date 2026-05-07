@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
+import { User } from '../users/entities/user.entity';
 import { Skill } from './entities/skill.entity';
 import { SkillsService } from './skills.service';
 
@@ -17,6 +18,10 @@ describe('SkillsService', () => {
   const categoriesRepositoryMock = {
     findOne: jest.fn(),
     findOneOrFail: jest.fn(),
+  };
+  const usersRepositoryMock = {
+    findOne: jest.fn(),
+    save: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -34,6 +39,10 @@ describe('SkillsService', () => {
           useValue: categoriesRepositoryMock as unknown as Partial<
             Repository<Category>
           >,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: usersRepositoryMock as unknown as Partial<Repository<User>>,
         },
       ],
     }).compile();
