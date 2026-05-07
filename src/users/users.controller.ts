@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Patch,
   Param,
   Delete,
@@ -10,13 +8,12 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Body,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
-  ApiCreateUser,
   ApiDeleteUser,
   ApiFindAllUsers,
   ApiGetUser,
@@ -33,12 +30,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @ApiCreateUser()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
 
   @Get()
   @ApiFindAllUsers()
@@ -70,6 +61,7 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiDeleteUser()
   async remove(@Param('id') id: string) {
     await this.usersService.remove(id);
   }
