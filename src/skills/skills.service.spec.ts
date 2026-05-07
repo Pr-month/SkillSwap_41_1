@@ -53,4 +53,22 @@ describe('SkillsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('removes a skill from favorites for the current user', async () => {
+    usersRepositoryMock.findOne.mockResolvedValue({
+      id: 'user-1',
+      favoriteSkills: [{ id: 'skill-1' }],
+    });
+    skillsRepositoryMock.findOne.mockResolvedValue({ id: 'skill-1' });
+    usersRepositoryMock.save.mockResolvedValue({});
+
+    const result = await service.removeFromFavorite('skill-1', 'user-1');
+
+    expect(usersRepositoryMock.findOne).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      relations: { favoriteSkills: true },
+    });
+    expect(usersRepositoryMock.save).toHaveBeenCalled();
+    expect(result).toEqual({ message: 'Навык удален из избранного' });
+  });
 });
