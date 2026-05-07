@@ -1,43 +1,25 @@
 import { City } from 'src/city/entities/city.entities';
 import { DataSource } from 'typeorm';
-import { citiesData } from './cities.array';
-import { dbConfig } from 'src/config/db.config';
+import { citiesData } from './data/cities.array';
 
-async function seedCities() {
-  const dataSource = new DataSource(dbConfig());
+export async function seedCities(dataSource: DataSource) {
+  const cityRepository = dataSource.getRepository(City);
 
-  try {
-    await dataSource.initialize();
+  const cities = citiesData.map((city) => ({
+    name: city.name,
+    district: city.district,
+    subject: city.subject,
+    population: Number(city.population),
+    coords: {
+      lat: Number(city.coords.lat),
+      lon: Number(city.coords.lon),
+    },
+  }));
 
-    const cityRepository = dataSource.getRepository(City);
+  await cityRepository.upsert(cities, {
+    conflictPaths: ['name', 'subject'],
+    skipUpdateIfNoValuesChanged: true,
+  });
 
-    const cities = citiesData.map((city) => ({
-      name: city.name,
-      district: city.district,
-      subject: city.subject,
-      population: Number(city.population),
-      coords: {
-        lat: Number(city.coords.lat),
-        lon: Number(city.coords.lon),
-      },
-    }));
-
-    await cityRepository.upsert(cities, {
-      conflictPaths: ['name', 'subject'],
-      skipUpdateIfNoValuesChanged: true,
-    });
-
-    console.log(`Seeded cities: ${cities.length}`);
-  } catch (error) {
-    console.error('Error seeding cities:', error);
-    throw error;
-  } finally {
-    if (dataSource.isInitialized) {
-      await dataSource.destroy();
-    }
-
-    console.log('Seeding cities completed.');
-  }
+  console.log(`Seeded cities: ${cities.length}`);
 }
-
-void seedCities();
