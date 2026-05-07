@@ -8,19 +8,29 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { IRequestWithUser } from './auth.types';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { Response } from 'express';
+import {
+  ApiLogin,
+  ApiLogout,
+  ApiRefresh,
+  ApiRegister,
+} from './swagger/auth.swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @ApiRegister()
   async register(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -32,29 +42,25 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiLogin()
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, tokens } = await this.authService.login(loginDto);
-
     this.authService.setAuthCookies(res, tokens);
-    const { password, refreshToken, ...result } = user;
-    void password;
-    void refreshToken;
-
-    return result;
+    return { user };
   }
 
   @Post('logout')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiLogout()
   async logout(
     @Req() req: IRequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
     const userId = req.user.sub;
-
     await this.authService.logout(userId);
 
     res.clearCookie('accessToken');
@@ -63,14 +69,18 @@ export class AuthController {
     return { message: 'Вы успешно вышли из аккаунта' };
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @ApiRefresh()
   async refresh(
     @Req() req: IRequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refreshToken as string;
-    const { user, tokens } = await this.authService.refresh(refreshToken);
+    const { user, tokens } = await this.authService.refresh(
+      req.user.sub,
+      req.user.refreshToken!,
+    );
     this.authService.setAuthCookies(res, tokens);
     return { message: 'Tokens refreshed successfully', user };
   }

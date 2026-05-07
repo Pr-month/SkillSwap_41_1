@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -12,6 +14,8 @@ import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/file.module';
 import { CategoriesModule } from './categories/categories.module';
 import { RequestsModule } from './requests/requests.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { CitiesModule } from './cities/cities.module';
 
 @Module({
   imports: [
@@ -23,12 +27,18 @@ import { RequestsModule } from './requests/requests.module';
       inject: [dbConfig.KEY],
       useFactory: (db: ConfigType<typeof dbConfig>) => db,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public', 'uploads'),
+      serveRoot: '/public/uploads',
+    }),
     AuthModule,
     FilesModule,
     UsersModule,
     SkillsModule,
     CategoriesModule,
     RequestsModule,
+    NotificationsModule,
+    CitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

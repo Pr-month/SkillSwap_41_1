@@ -12,6 +12,8 @@ describe('RequestsService', () => {
     create: jest.fn(),
     save: jest.fn(),
     createQueryBuilder: jest.fn(),
+    findOneBy: jest.fn(),
+    remove: jest.fn(),
   };
   const usersRepositoryMock = {
     findOne: jest.fn(),
@@ -21,14 +23,16 @@ describe('RequestsService', () => {
   };
   const queryBuilderMock = {
     leftJoin: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn(),
     getOneOrFail: jest.fn(),
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
-
     requestsRepositoryMock.createQueryBuilder.mockReturnValue(queryBuilderMock);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -97,5 +101,23 @@ describe('RequestsService', () => {
       }),
     );
     expect(result).toEqual({ id: 'request-1' });
+  });
+
+  it('returns outgoing requests for the current user ordered by creation date', async () => {
+    queryBuilderMock.getMany.mockResolvedValue([{ id: 'request-1' }]);
+
+    const result = await service.findOutgoing('user-1');
+
+    expect(requestsRepositoryMock.createQueryBuilder).toHaveBeenCalledWith(
+      'request',
+    );
+    expect(queryBuilderMock.where).toHaveBeenCalledWith('sender.id = :userId', {
+      userId: 'user-1',
+    });
+    expect(queryBuilderMock.orderBy).toHaveBeenCalledWith(
+      'request.createdAt',
+      'DESC',
+    );
+    expect(result).toEqual([{ id: 'request-1' }]);
   });
 });

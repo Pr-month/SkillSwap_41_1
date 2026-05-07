@@ -3,13 +3,18 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { IRequestWithUser } from '../auth/auth.types';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
+import { UserRole } from '../users/entities/enums/users.enums';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { Request, RequestStatus } from './entities/request.entity';
+import { UpdateRequestDto } from './dto/update-request.dto';
+import { Request } from './entities/request.entity';
+import { RequestStatus } from './entities/request.enum';
 
 @Injectable()
 export class RequestsService {
@@ -119,5 +124,48 @@ export class RequestsService {
       ])
       .where('request.id = :id', { id: savedRequest.id })
       .getOneOrFail();
+  }
+
+  findAll() {
+    return `This action returns all requests`;
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} request`;
+  }
+
+  update(id: number, updateRequestDto: UpdateRequestDto) {
+    return `This action updates a #${id} request`;
+  }
+
+  findOutgoing(userId: string) {
+    return this.requestsRepository
+      .createQueryBuilder('request')
+      .leftJoinAndSelect('request.sender', 'sender')
+      .leftJoinAndSelect('request.receiver', 'receiver')
+      .leftJoinAndSelect('request.offeredSkill', 'offeredSkill')
+      .leftJoinAndSelect('offeredSkill.category', 'offeredCategory')
+      .leftJoinAndSelect('request.requestedSkill', 'requestedSkill')
+      .leftJoinAndSelect('requestedSkill.category', 'requestedCategory')
+      .where('sender.id = :userId', { userId })
+      .orderBy('request.createdAt', 'DESC')
+      .getMany();
+  }
+
+  async remove(id: string, req: IRequestWithUser) {
+    const request = await this.requestsRepository.findOneBy({ id });
+    if (!request) {
+      throw new NotFoundException('Request not found');
+    }
+
+    if (
+      request.sender.id !== req.user.sub ||
+      req.user.role !== UserRole.ADMIN
+    ) {
+      throw new UnauthorizedException(
+        'You are not authorized to delete this request',
+      );
+    }
+    await this.requestsRepository.remove(request);
   }
 }
