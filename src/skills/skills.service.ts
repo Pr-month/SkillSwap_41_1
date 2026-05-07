@@ -56,7 +56,7 @@ export class SkillsService {
     const totalPages = Math.ceil(total / limit);
 
     const lastPage = total === 0 ? 1 : totalPages;
-    
+
     if (page > lastPage) {
       throw new NotFoundException('Page not found');
     }
