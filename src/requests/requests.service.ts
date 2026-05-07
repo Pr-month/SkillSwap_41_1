@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
-import { IRequestWithUser } from 'src/auth/auth.types';
+import { IRequestWithUser } from '../auth/auth.types';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from './entities/request.entity';
-import { UserRole } from 'src/users/entities/enums/users.enums';
+import { UserRole } from '../users/entities/enums/users.enums';
 
 @Injectable()
 export class RequestsService {
@@ -17,6 +17,7 @@ export class RequestsService {
     @InjectRepository(Request)
     private readonly requestRepository: Repository<Request>,
   ) {}
+
   create(createRequestDto: CreateRequestDto) {
     return 'This action adds a new request';
   }
@@ -31,6 +32,20 @@ export class RequestsService {
 
   update(id: number, updateRequestDto: UpdateRequestDto) {
     return `This action updates a #${id} request`;
+  }
+
+  findOutgoing(userId: string) {
+    return this.requestRepository
+      .createQueryBuilder('request')
+      .leftJoinAndSelect('request.sender', 'sender')
+      .leftJoinAndSelect('request.receiver', 'receiver')
+      .leftJoinAndSelect('request.offeredSkill', 'offeredSkill')
+      .leftJoinAndSelect('offeredSkill.category', 'offeredCategory')
+      .leftJoinAndSelect('request.requestedSkill', 'requestedSkill')
+      .leftJoinAndSelect('requestedSkill.category', 'requestedCategory')
+      .where('sender.id = :userId', { userId })
+      .orderBy('request.createdAt', 'DESC')
+      .getMany();
   }
 
   async remove(id: string, req: IRequestWithUser) {

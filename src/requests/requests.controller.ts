@@ -31,6 +31,12 @@ export class RequestsController {
     return this.requestsService.findAll();
   }
 
+  @UseGuards(AccessTokenGuard)
+  @Get('outgoing')
+  getOutgoing(@Req() req: IRequestWithUser) {
+    return this.requestsService.findOutgoing(req.user.sub);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.requestsService.findOne(+id);
