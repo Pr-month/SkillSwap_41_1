@@ -8,6 +8,8 @@ describe('RequestsService', () => {
   let service: RequestsService;
   const requestsRepositoryMock = {
     createQueryBuilder: jest.fn(),
+    findOneBy: jest.fn(),
+    remove: jest.fn(),
   };
   const queryBuilderMock = {
     leftJoin: jest.fn().mockReturnThis(),
