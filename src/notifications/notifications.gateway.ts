@@ -15,7 +15,7 @@ export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   constructor(private readonly wsJwtService: WsJwtService) {}
 
