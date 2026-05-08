@@ -1,12 +1,13 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserInput } from './users.types';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Category } from '../categories/entities/category.entity';
 import { UserRole } from './entities/enums/users.enums';
@@ -20,8 +21,15 @@ export class UsersService {
     private readonly categoryRepo: Repository<Category>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserInput): Promise<User> {
     const { wantToLearn, role, ...rest } = createUserDto;
+
+    const duplicate = await this.userRepo.findOne({
+      where: { email: rest.email },
+    });
+    if (duplicate) {
+      throw new ConflictException('User with this email already exists');
+    }
 
     const user = this.userRepo.create({
       ...rest,
@@ -87,6 +95,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     await this.userRepo.remove(user);
   }
 }

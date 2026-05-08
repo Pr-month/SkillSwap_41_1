@@ -1,8 +1,8 @@
-import { Gender, UserRole } from '../entities/enums/users.enums';
+import { Gender, UserRole } from './entities/enums/users.enums';
 
-export class CreateUserDto {
-  name!: string;
-  email!: string;
+export interface CreateUserInput {
+  name: string;
+  email: string;
   password?: string;
   about?: string;
   birthdate?: Date;
