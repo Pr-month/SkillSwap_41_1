@@ -12,12 +12,14 @@ import { RolesGuard } from './guards/roles.guard';
 import { User } from '../users/entities/user.entity';
 import { Category } from '../categories/entities/category.entity';
 import { Skill } from '../skills/entities/skill.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.register({}),
     TypeOrmModule.forFeature([User, Category, Skill]),
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [

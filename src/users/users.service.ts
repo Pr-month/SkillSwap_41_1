@@ -1,19 +1,54 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserInput } from './users.types';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Category } from '../categories/entities/category.entity';
+import { UserRole } from './entities/enums/users.enums';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserInput): Promise<User> {
+    const { wantToLearn, role, ...rest } = createUserDto;
+
+    const duplicate = await this.userRepo.findOne({
+      where: { email: rest.email },
+    });
+    if (duplicate) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const user = this.userRepo.create({
+      ...rest,
+      role: role ?? UserRole.USER,
+    });
+
+    if (wantToLearn?.length) {
+      const categories = await this.categoryRepo.findBy({
+        id: In(wantToLearn),
+      });
+      if (categories.length !== wantToLearn.length) {
+        throw new BadRequestException(
+          'One or more categories not found or invalid',
+        );
+      }
+      user.wantToLearn = categories;
+    }
+
+    return this.userRepo.save(user);
   }
 
   async findAll() {
@@ -60,6 +95,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     await this.userRepo.remove(user);
   }
 }
