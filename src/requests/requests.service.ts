@@ -209,7 +209,7 @@ export class RequestsService {
     }
 
     if (
-      request.sender.id !== req.user.sub ||
+      request.sender.id !== req.user.sub &&
       req.user.role !== UserRole.ADMIN
     ) {
       throw new UnauthorizedException(
