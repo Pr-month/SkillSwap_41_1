@@ -6,8 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/entities/enums/users.enums';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -23,7 +28,8 @@ import {
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  // TODO: защита гардом? (ТЗ 1.5)
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post()
   @ApiCreateCategory()
   create(@Body() createCategoryDto: CreateCategoryDto) {
@@ -36,7 +42,8 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  // TODO: защита гардом? (ТЗ 1.5)
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Patch(':id')
   @ApiUpdateCategory()
   update(
@@ -46,7 +53,8 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
-  // TODO: защита гардом? (ТЗ 1.5)
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   @ApiRemoveCategory()
   remove(@Param('id') id: string) {
