@@ -1,4 +1,4 @@
-import { Gender, UserRole } from '../users/entities/enums/users.enums';
+import { Gender, UserRole } from '../../users/entities/enums/users.enums';
 
 export const testUsers = [
   {

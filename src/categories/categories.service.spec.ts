@@ -1,22 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
 import { Category } from './entities/category.entity';
+import { CategoriesService } from './categories.service';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { IsNull } from 'typeorm';
 
 describe('CategoriesService', () => {
   let service: CategoriesService;
-  let repository: Repository<Category>;
-
   const mockRepository = {
+    count: jest.fn(),
     create: jest.fn(),
-    save: jest.fn(),
+    delete: jest.fn(),
     find: jest.fn(),
     findOne: jest.fn(),
-    delete: jest.fn(),
-    count: jest.fn(),
+    save: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -25,17 +23,17 @@ describe('CategoriesService', () => {
         CategoriesService,
         {
           provide: getRepositoryToken(Category),
-          useValue: mockRepository,
+          useValue: mockRepository as unknown as Partial<
+            Repository<Category>
+          >,
         },
       ],
     }).compile();
 
     service = module.get<CategoriesService>(CategoriesService);
-    repository = module.get<Repository<Category>>(getRepositoryToken(Category));
-    jest.clearAllMocks();
   });
 
-  it('Сервис должен существовать', () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 

@@ -22,7 +22,7 @@ export class RegisterDto {
   @IsNotEmpty()
   about: string;
   @IsDateString()
-  birthday: Date;
+  birthdate: Date;
   @IsNotEmpty()
   city: string;
   @IsNotEmpty()

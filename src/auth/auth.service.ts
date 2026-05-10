@@ -1,68 +1,40 @@
 import { IJwtConfig, jwtConfig } from './../config/jwt.config';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { User } from './../users/entities/user.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { appConfig, IAppConfig } from './../config/app.config';
 import { JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserRole } from '../users/entities/enums/users.enums';
-import { Category } from '../categories/entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response, CookieOptions } from 'express';
 import { JwtPayload } from './auth.types';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
     @Inject(appConfig.KEY)
     private readonly configService: IAppConfig,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfigService: IJwtConfig,
     private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
   ) {}
 
   async register(createAuthDto: RegisterDto) {
-    const user = this.userRepository.create({
-      name: createAuthDto.name,
-      email: createAuthDto.email,
-      about: createAuthDto.about,
-      birthdate: createAuthDto.birthday,
-      city: createAuthDto.city,
-      gender: createAuthDto.gender,
-      avatar: createAuthDto.avatar,
-      password: await bcrypt.hash(
-        createAuthDto.password,
-        this.configService.hashSalt,
-      ),
+    const { password, ...rest } = createAuthDto;
+
+    const user = await this.usersService.create({
+      ...rest,
+      password: await bcrypt.hash(password, this.configService.hashSalt),
       role: UserRole.USER,
     });
-
-    if (createAuthDto.wantToLearn) {
-      const categoryIds = createAuthDto.wantToLearn;
-      const categories = await this.categoryRepository.findBy({
-        id: In(categoryIds),
-      });
-      if (categories.length !== categoryIds.length) {
-        throw new BadRequestException(
-          'One or more categories not found or invalid.',
-        );
-      }
-      user.wantToLearn = categories;
-    }
-
-    await this.userRepository.save(user);
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
     user.refreshToken = await bcrypt.hash(
@@ -70,10 +42,8 @@ export class AuthService {
       this.configService.hashSalt,
     );
     await this.userRepository.save(user);
-    return {
-      user,
-      tokens,
-    };
+
+    return { user, tokens };
   }
 
   async refresh(userId: string, oldRefreshToken: string) {

@@ -389,5 +389,6 @@ describe('SkillsService', () => {
         service.addToFavorite('skill-uuid-1', 'user-uuid-1'),
       ).rejects.toThrow('Skill is already in favorites');
     });
-  });
+  })
 });
+
