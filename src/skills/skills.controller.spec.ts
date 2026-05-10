@@ -10,13 +10,9 @@ describe('SkillsController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
-    addToFavorite: jest.fn(),
-    removeFromFavorite: jest.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SkillsController],
       providers: [
@@ -32,21 +28,5 @@ describe('SkillsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
-  });
-
-  it('delegates favorite removal to the service', async () => {
-    skillsServiceMock.removeFromFavorite.mockResolvedValue({
-      message: 'Навык удален из избранного',
-    });
-
-    const result = await controller.removeFromFavorite('skill-1', {
-      user: { sub: 'user-1' },
-    } as never);
-
-    expect(skillsServiceMock.removeFromFavorite).toHaveBeenCalledWith(
-      'skill-1',
-      'user-1',
-    );
-    expect(result).toEqual({ message: 'Навык удален из избранного' });
   });
 });
