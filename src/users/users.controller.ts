@@ -10,10 +10,12 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { IRequestWithUser } from '../auth/auth.types';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -30,8 +32,8 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: GetUsersQueryDto) {
+    return this.usersService.findAll(query);
   }
 
   @UseGuards(AccessTokenGuard)

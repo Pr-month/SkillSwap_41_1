@@ -40,4 +40,15 @@ describe('CitiesController', () => {
     expect(citiesServiceMock.findAll).toHaveBeenCalledWith({ search: 'ber' });
     expect(result).toEqual([{ id: '1', name: 'Berlin' }]);
   });
+
+  it('delegates city update to the service', async () => {
+    citiesServiceMock.update.mockResolvedValue({ id: '1', name: 'Lyon' });
+
+    const result = await controller.update('1', { name: 'Lyon' });
+
+    expect(citiesServiceMock.update).toHaveBeenCalledWith('1', {
+      name: 'Lyon',
+    });
+    expect(result).toEqual({ id: '1', name: 'Lyon' });
+  });
 });

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ILike, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateCityDto } from './dto/create-city.dto';
@@ -32,15 +32,23 @@ export class CitiesService {
     );
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} city`;
   }
 
-  update(id: number, updateCityDto: UpdateCityDto) {
-    return `This action updates a #${id} city`;
+  async update(id: string, updateCityDto: UpdateCityDto) {
+    const city = await this.cityRepository.findOneBy({ id });
+
+    if (!city) {
+      throw new NotFoundException('City not found');
+    }
+
+    Object.assign(city, updateCityDto);
+
+    return this.cityRepository.save(city);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} city`;
   }
 }
