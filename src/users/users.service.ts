@@ -12,6 +12,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Category } from '../categories/entities/category.entity';
 import { UserRole } from './entities/enums/users.enums';
 
+const userProfileRelations = {
+  skills: true,
+  wantToLearn: true,
+  favoriteSkills: true,
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -53,28 +59,18 @@ export class UsersService {
 
   async findAll() {
     return this.userRepo.find({
-      relations: {
-        skills: true,
-        wantToLearn: true,
-        favoriteSkills: true,
-      },
+      relations: userProfileRelations,
     });
   }
 
-  findOne(id: string) {
-    return this.userRepo.findOne({
-      where: { id },
-    });
+  async findOne(id: string) {
+    return this.findById(id);
   }
 
   async findById(id: string): Promise<User | null> {
     return this.userRepo.findOne({
       where: { id },
-      relations: {
-        skills: true,
-        wantToLearn: true,
-        favoriteSkills: true,
-      },
+      relations: userProfileRelations,
     });
   }
 
