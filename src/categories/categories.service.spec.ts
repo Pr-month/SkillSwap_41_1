@@ -108,9 +108,9 @@ describe('CategoriesService', () => {
       const result = await service.findAll();
 
       expect(mockRepository.find).toHaveBeenCalledWith({
-      where: { parent: IsNull() },
-      relations: ['children'],
-    });
+        where: { parent: IsNull() },
+        relations: ['children'],
+      });
 
       expect(result).toEqual(rootCategories);
     });
@@ -198,7 +198,7 @@ describe('CategoriesService', () => {
       children: [],
     };
 
-    it('должен успешно удалить категорию', async () => {
+    it('Сервис должен успешно удалить категорию', async () => {
       mockRepository.findOne.mockResolvedValue(existingCategory);
       mockRepository.count.mockResolvedValue(0);
       mockRepository.delete.mockResolvedValue({ affected: 1 });
@@ -209,7 +209,7 @@ describe('CategoriesService', () => {
       expect(result).toEqual({ affected: 1 });
     });
 
-    it('должен выдать BadRequestException когда у категории есть потомки', async () => {
+    it('Сервис должен выдать BadRequestException когда у категории есть потомки', async () => {
       mockRepository.findOne.mockResolvedValue(existingCategory);
       mockRepository.count.mockResolvedValue(1);
 
@@ -219,7 +219,7 @@ describe('CategoriesService', () => {
       );
     });
 
-    it('должен выдать NotFoundException когда категория не найдена', async () => {
+    it('Сервис должен выдать NotFoundException когда категория не найдена', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(service.remove('non-existent')).rejects.toThrow(
