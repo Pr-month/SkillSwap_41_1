@@ -9,9 +9,11 @@ import {
   HttpCode,
   HttpStatus,
   Body,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ApiDeleteUser,
@@ -33,8 +35,8 @@ export class UsersController {
 
   @Get()
   @ApiFindAllUsers()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: GetUsersQueryDto) {
+    return this.usersService.findAll(query);
   }
 
   @UseGuards(AccessTokenGuard)

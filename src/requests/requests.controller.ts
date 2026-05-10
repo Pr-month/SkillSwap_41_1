@@ -21,24 +21,14 @@ import { IRequestWithUser } from '../auth/auth.types';
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
-  @UseGuards(AccessTokenGuard)
   @Post()
-  create(
-    @Body() createRequestDto: CreateRequestDto,
-    @Req() req: IRequestWithUser,
-  ) {
-    return this.requestsService.create(createRequestDto, req.user.sub);
+  create(@Body() createRequestDto: CreateRequestDto) {
+    return this.requestsService.create(createRequestDto);
   }
 
   @Get()
   findAll() {
     return this.requestsService.findAll();
-  }
-
-  @UseGuards(AccessTokenGuard)
-  @Get('incoming')
-  getIncoming(@Req() req: IRequestWithUser) {
-    return this.requestsService.findIncoming(req.user.sub);
   }
 
   @UseGuards(AccessTokenGuard)
