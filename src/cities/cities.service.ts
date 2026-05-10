@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCityDto } from './dto/create-city.dto';
-import { UpdateCityDto } from './dto/update-city.dto';
+import { ILike, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { CreateCityDto } from './dto/create-city.dto';
+import { GetCitiesQueryDto } from './dto/get-cities-query.dto';
+import { UpdateCityDto } from './dto/update-city.dto';
 import { City } from './entities/city.entity';
 
 @Injectable()
@@ -16,8 +17,19 @@ export class CitiesService {
     return this.cityRepository.save(city);
   }
 
-  findAll() {
-    return `This action returns all cities`;
+  async findAll(query: GetCitiesQueryDto) {
+    const search = query.search?.trim();
+
+    return this.cityRepository.find(
+      search
+        ? {
+            where: { name: ILike(`%${search}%`) },
+            order: { name: 'ASC' },
+          }
+        : {
+            order: { name: 'ASC' },
+          },
+    );
   }
 
   findOne(id: number) {
