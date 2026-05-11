@@ -13,6 +13,12 @@ import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { Category } from '../categories/entities/category.entity';
 import { UserRole } from './entities/enums/users.enums';
 
+const userProfileRelations = {
+  skills: true,
+  wantToLearn: true,
+  favoriteSkills: true,
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -59,11 +65,7 @@ export class UsersService {
     const [data, total] = await this.userRepo.findAndCount({
       skip,
       take: limit,
-      relations: {
-        skills: true,
-        wantToLearn: true,
-        favoriteSkills: true,
-      },
+      relations: userProfileRelations,
     });
 
     const totalPages = Math.ceil(total / limit);
@@ -81,20 +83,14 @@ export class UsersService {
     };
   }
 
-  findOne(id: string) {
-    return this.userRepo.findOne({
-      where: { id },
-    });
+  async findOne(id: string) {
+    return this.findById(id);
   }
 
   async findById(id: string): Promise<User | null> {
     return this.userRepo.findOne({
       where: { id },
-      relations: {
-        skills: true,
-        wantToLearn: true,
-        favoriteSkills: true,
-      },
+      relations: userProfileRelations,
     });
   }
 
