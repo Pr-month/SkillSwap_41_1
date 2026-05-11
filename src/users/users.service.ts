@@ -9,6 +9,7 @@ import { In, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './users.types';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { Category } from '../categories/entities/category.entity';
 import { UserRole } from './entities/enums/users.enums';
 
@@ -51,14 +52,33 @@ export class UsersService {
     return this.userRepo.save(user);
   }
 
-  async findAll() {
-    return this.userRepo.find({
+  async findAll(query: GetUsersQueryDto) {
+    const { page, limit } = query;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.userRepo.findAndCount({
+      skip,
+      take: limit,
       relations: {
         skills: true,
         wantToLearn: true,
         favoriteSkills: true,
       },
     });
+
+    const totalPages = Math.ceil(total / limit);
+
+    const lastPage = total === 0 ? 1 : totalPages;
+
+    if (page > lastPage) {
+      throw new NotFoundException('Page not found');
+    }
+
+    return {
+      data,
+      page,
+      totalPages: lastPage,
+    };
   }
 
   findOne(id: string) {

@@ -1,6 +1,4 @@
 import {
-  BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,8 +10,11 @@ import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/entities/enums/users.enums';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { IRequestWithUser } from '../auth/auth.types';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from './entities/request.entity';
-import { RequestStatus } from './entities/request.enum';
+import { UserRole } from '../users/entities/enums/users.enums';
 
 @Injectable()
 export class RequestsService {
@@ -26,11 +27,7 @@ export class RequestsService {
 
   constructor(
     @InjectRepository(Request)
-    private readonly requestsRepository: Repository<Request>,
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
-    @InjectRepository(Skill)
-    private readonly skillsRepository: Repository<Skill>,
+    private readonly requestRepository: Repository<Request>,
   ) {}
 
   async create(createRequestDto: CreateRequestDto, senderId: string) {
@@ -132,6 +129,6 @@ export class RequestsService {
         'You are not authorized to delete this request',
       );
     }
-    await this.requestsRepository.remove(request);
+    await this.requestRepository.remove(request);
   }
 }
