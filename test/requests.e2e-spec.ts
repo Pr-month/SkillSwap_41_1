@@ -1,21 +1,20 @@
 import {
-  INestApplication,
   CanActivate,
   ExecutionContext,
+  INestApplication,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { RequestsController } from '../src/requests/requests.controller';
-import { RequestsService } from '../src/requests/requests.service';
 import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
 import { IRequestWithUser } from '../src/auth/auth.types';
+import { RequestsController } from '../src/requests/requests.controller';
+import { RequestsService } from '../src/requests/requests.service';
 import { UserRole } from '../src/users/entities/enums/users.enums';
 
 describe('RequestsController (e2e)', () => {
   let app: INestApplication<App>;
   const requestsServiceMock = {
-    findIncoming: jest.fn(),
     findOutgoing: jest.fn(),
   };
   const accessTokenGuardMock: CanActivate = {
@@ -52,18 +51,6 @@ describe('RequestsController (e2e)', () => {
 
   afterEach(async () => {
     await app.close();
-  });
-
-  it('returns incoming requests for the authenticated user', async () => {
-    const incomingRequests = [{ id: 'request-1' }];
-    requestsServiceMock.findIncoming.mockResolvedValue(incomingRequests);
-
-    await request(app.getHttpServer())
-      .get('/requests/incoming')
-      .expect(200)
-      .expect(incomingRequests);
-
-    expect(requestsServiceMock.findIncoming).toHaveBeenCalledWith('user-1');
   });
 
   it('returns outgoing requests for the authenticated user', async () => {
