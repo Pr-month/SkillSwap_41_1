@@ -16,6 +16,8 @@ import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { Request } from './entities/request.entity';
 import { RequestStatus } from './entities/request.enum';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../notifications/notifications.type';
 
 @Injectable()
 export class RequestsService {
@@ -33,6 +35,7 @@ export class RequestsService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Skill)
     private readonly skillsRepository: Repository<Skill>,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(createRequestDto: CreateRequestDto, senderId: string) {
@@ -48,16 +51,8 @@ export class RequestsService {
       }),
     ]);
 
-    if (!sender) {
-      throw new NotFoundException('Отправитель не найден');
-    }
-
-    if (!offeredSkill) {
-      throw new NotFoundException('Предлагаемый навык не найден');
-    }
-
-    if (!requestedSkill) {
-      throw new NotFoundException('Запрашиваемый навык не найден');
+    if (!sender || !offeredSkill || !requestedSkill) {
+      throw new NotFoundException('Данные для создания заявки не найдены');
     }
 
     const receiver = requestedSkill.owner;
@@ -83,6 +78,19 @@ export class RequestsService {
 
     const savedRequest = await this.requestsRepository.save(request);
 
+    const skillName = requestedSkill.title;
+
+    this.notificationsGateway.notifyUser(receiver.id, {
+      type: NotificationType.NEW_REQUEST,
+      skillName,
+      fromUser: {
+        id: sender.id,
+        name: sender.name,
+      },
+      requestId: savedRequest.id,
+      timeStamp: new Date(),
+    });
+
     return this.requestsRepository.findOneOrFail({
       where: { id: savedRequest.id },
       relations: this.requestRelations,
@@ -90,7 +98,7 @@ export class RequestsService {
   }
 
   findAll() {
-    return `This action returns all requests`;
+    return 'This action returns all requests';
   }
 
   findOne(id: string) {
@@ -104,7 +112,7 @@ export class RequestsService {
   ) {
     const request = await this.requestsRepository.findOne({
       where: { id },
-      relations: { receiver: true },
+      relations: this.requestRelations,
     });
 
     if (!request) {
@@ -118,7 +126,27 @@ export class RequestsService {
     }
 
     request.status = updateRequestDto.status;
-    return await this.requestsRepository.save(request);
+    const updatedRequest = await this.requestsRepository.save(request);
+
+    const notificationType =
+      updateRequestDto.status === RequestStatus.ACCEPTED
+        ? NotificationType.ACCEPTED
+        : NotificationType.REJECTED;
+
+    const skillName = request.requestedSkill.title;
+
+    this.notificationsGateway.notifyUser(request.sender.id, {
+      type: notificationType,
+      skillName,
+      fromUser: {
+        id: request.receiver.id,
+        name: request.receiver.name,
+      },
+      requestId: request.id,
+      timeStamp: new Date(),
+    });
+
+    return updatedRequest;
   }
 
   async findIncoming(userId: string): Promise<Request[]> {
@@ -142,6 +170,7 @@ export class RequestsService {
       where: { id },
       relations: { sender: true },
     });
+
     if (!request) {
       throw new NotFoundException('Request not found');
     }
