@@ -1,6 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
 import {
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -10,15 +9,6 @@ export const ApiFindAllUsers = () =>
   applyDecorators(
     ApiOperation({ summary: 'Get all users' }),
     ApiOkResponse({ description: 'Return all users' }),
-  );
-
-export const ApiCreateUser = () =>
-  applyDecorators(
-    ApiOperation({ summary: 'Create a new user' }),
-    ApiCreatedResponse({
-      description: 'The user has been successfully created.',
-    }),
-    ApiNotFoundResponse({ description: 'User not found.' }),
   );
 
 export const ApiGetUser = () =>

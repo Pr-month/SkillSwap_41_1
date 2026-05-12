@@ -1,16 +1,17 @@
 import {
-  BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsRelations, Repository } from 'typeorm';
+
 import { IRequestWithUser } from '../auth/auth.types';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/entities/enums/users.enums';
+
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { Request } from './entities/request.entity';
@@ -18,6 +19,13 @@ import { RequestStatus } from './entities/request.enum';
 
 @Injectable()
 export class RequestsService {
+  private readonly requestRelations: FindOptionsRelations<Request> = {
+    sender: true,
+    receiver: true,
+    offeredSkill: { category: true },
+    requestedSkill: { category: true },
+  };
+
   constructor(
     @InjectRepository(Request)
     private readonly requestsRepository: Repository<Request>,
@@ -28,11 +36,8 @@ export class RequestsService {
   ) {}
 
   async create(createRequestDto: CreateRequestDto, senderId: string) {
-    const [sender, receiver, offeredSkill, requestedSkill] = await Promise.all([
+    const [sender, offeredSkill, requestedSkill] = await Promise.all([
       this.usersRepository.findOne({ where: { id: senderId } }),
-      this.usersRepository.findOne({
-        where: { id: createRequestDto.receiverId },
-      }),
       this.skillsRepository.findOne({
         where: { id: createRequestDto.offeredSkillId },
         relations: { owner: true, category: true },
@@ -47,14 +52,6 @@ export class RequestsService {
       throw new NotFoundException('Отправитель не найден');
     }
 
-    if (!receiver) {
-      throw new NotFoundException('Получатель не найден');
-    }
-
-    if (sender.id === receiver.id) {
-      throw new BadRequestException('Нельзя отправить заявку самому себе');
-    }
-
     if (!offeredSkill) {
       throw new NotFoundException('Предлагаемый навык не найден');
     }
@@ -63,15 +60,15 @@ export class RequestsService {
       throw new NotFoundException('Запрашиваемый навык не найден');
     }
 
+    const receiver = requestedSkill.owner;
+
+    if (sender.id === receiver.id) {
+      throw new BadRequestException('Нельзя отправить заявку самому себе');
+    }
+
     if (offeredSkill.owner.id !== sender.id) {
       throw new ForbiddenException(
         'Предлагаемый навык должен принадлежать отправителю',
-      );
-    }
-
-    if (requestedSkill.owner.id !== receiver.id) {
-      throw new ForbiddenException(
-        'Запрашиваемый навык должен принадлежать получателю',
       );
     }
 
@@ -86,133 +83,74 @@ export class RequestsService {
 
     const savedRequest = await this.requestsRepository.save(request);
 
-    return this.requestsRepository
-      .createQueryBuilder('request')
-      .leftJoin('request.sender', 'sender')
-      .leftJoin('request.receiver', 'receiver')
-      .leftJoin('request.offeredSkill', 'offeredSkill')
-      .leftJoin('offeredSkill.category', 'offeredCategory')
-      .leftJoin('request.requestedSkill', 'requestedSkill')
-      .leftJoin('requestedSkill.category', 'requestedCategory')
-      .select([
-        'request.id',
-        'request.createdAt',
-        'request.status',
-        'request.isRead',
-        'sender.id',
-        'sender.name',
-        'sender.email',
-        'sender.avatar',
-        'sender.role',
-        'receiver.id',
-        'receiver.name',
-        'receiver.email',
-        'receiver.avatar',
-        'receiver.role',
-        'offeredSkill.id',
-        'offeredSkill.title',
-        'offeredSkill.description',
-        'offeredSkill.images',
-        'offeredCategory.id',
-        'offeredCategory.name',
-        'requestedSkill.id',
-        'requestedSkill.title',
-        'requestedSkill.description',
-        'requestedSkill.images',
-        'requestedCategory.id',
-        'requestedCategory.name',
-      ])
-      .where('request.id = :id', { id: savedRequest.id })
-      .getOneOrFail();
+    return this.requestsRepository.findOneOrFail({
+      where: { id: savedRequest.id },
+      relations: this.requestRelations,
+    });
   }
 
   findAll() {
     return `This action returns all requests`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} request`;
   }
 
-  update(id: number, updateRequestDto: UpdateRequestDto) {
-    return `This action updates a #${id} request`;
+  async update(
+    id: string,
+    updateRequestDto: UpdateRequestDto,
+    req: IRequestWithUser,
+  ) {
+    const request = await this.requestsRepository.findOne({
+      where: { id },
+      relations: { receiver: true },
+    });
+
+    if (!request) {
+      throw new NotFoundException('Заявка не найдена');
+    }
+
+    if (request.receiver.id !== req.user.sub) {
+      throw new ForbiddenException(
+        'Вы можете обновлять статус только у входящих заявок',
+      );
+    }
+
+    request.status = updateRequestDto.status;
+    return await this.requestsRepository.save(request);
   }
 
   async findIncoming(userId: string): Promise<Request[]> {
-    return this.requestsRepository
-      .createQueryBuilder('request')
-      .leftJoinAndSelect('request.sender', 'sender')
-      .leftJoinAndSelect('request.receiver', 'receiver')
-      .leftJoinAndSelect('request.offeredSkill', 'offeredSkill')
-      .leftJoinAndSelect('offeredSkill.category', 'offeredSkillCategory')
-      .leftJoinAndSelect('request.requestedSkill', 'requestedSkill')
-      .leftJoinAndSelect('requestedSkill.category', 'requestedSkillCategory')
-      .select([
-        'request.id',
-        'request.createdAt',
-        'request.status',
-        'request.isRead',
-        'sender.id',
-        'sender.name',
-        'sender.email',
-        'sender.about',
-        'sender.birthdate',
-        'sender.city',
-        'sender.gender',
-        'sender.avatar',
-        'sender.role',
-        'receiver.id',
-        'receiver.name',
-        'receiver.email',
-        'receiver.about',
-        'receiver.birthdate',
-        'receiver.city',
-        'receiver.gender',
-        'receiver.avatar',
-        'receiver.role',
-        'offeredSkill.id',
-        'offeredSkill.title',
-        'offeredSkill.description',
-        'offeredSkill.images',
-        'offeredSkillCategory.id',
-        'offeredSkillCategory.name',
-        'requestedSkill.id',
-        'requestedSkill.title',
-        'requestedSkill.description',
-        'requestedSkill.images',
-        'requestedSkillCategory.id',
-        'requestedSkillCategory.name',
-      ])
-      .where('receiver.id = :userId', { userId })
-      .orderBy('request.createdAt', 'DESC')
-      .getMany();
+    return this.requestsRepository.find({
+      where: { receiver: { id: userId } },
+      relations: this.requestRelations,
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  findOutgoing(userId: string) {
-    return this.requestsRepository
-      .createQueryBuilder('request')
-      .leftJoinAndSelect('request.sender', 'sender')
-      .leftJoinAndSelect('request.receiver', 'receiver')
-      .leftJoinAndSelect('request.offeredSkill', 'offeredSkill')
-      .leftJoinAndSelect('offeredSkill.category', 'offeredCategory')
-      .leftJoinAndSelect('request.requestedSkill', 'requestedSkill')
-      .leftJoinAndSelect('requestedSkill.category', 'requestedCategory')
-      .where('sender.id = :userId', { userId })
-      .orderBy('request.createdAt', 'DESC')
-      .getMany();
+  async findOutgoing(userId: string): Promise<Request[]> {
+    return this.requestsRepository.find({
+      where: { sender: { id: userId } },
+      relations: this.requestRelations,
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async remove(id: string, req: IRequestWithUser) {
-    const request = await this.requestsRepository.findOneBy({ id });
+    const request = await this.requestsRepository.findOne({
+      where: { id },
+      relations: { sender: true },
+    });
     if (!request) {
       throw new NotFoundException('Request not found');
     }
 
     if (
-      request.sender.id !== req.user.sub ||
+      request.sender.id !== req.user.sub &&
       req.user.role !== UserRole.ADMIN
     ) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'You are not authorized to delete this request',
       );
     }

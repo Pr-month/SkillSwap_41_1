@@ -36,25 +36,30 @@ export class RequestsController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get('incoming')
-  getIncoming(@Req() req: IRequestWithUser) {
-    return this.requestsService.findIncoming(req.user.sub);
-  }
-
-  @UseGuards(AccessTokenGuard)
   @Get('outgoing')
   getOutgoing(@Req() req: IRequestWithUser) {
     return this.requestsService.findOutgoing(req.user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requestsService.findOne(+id);
+  @UseGuards(AccessTokenGuard)
+  @Get('incoming')
+  getIncoming(@Req() req: IRequestWithUser) {
+    return this.requestsService.findIncoming(req.user.sub);
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.requestsService.findOne(id);
+  }
+
+  @UseGuards(AccessTokenGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestsService.update(+id, updateRequestDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateRequestDto: UpdateRequestDto,
+    @Req() req: IRequestWithUser,
+  ) {
+    return this.requestsService.update(id, updateRequestDto, req);
   }
 
   @UseGuards(AccessTokenGuard)
@@ -62,6 +67,6 @@ export class RequestsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
     await this.requestsService.remove(id, req);
-    return { message: 'Request deleted successfully' };
+    return { message: 'Заявка успешно удалена' };
   }
 }

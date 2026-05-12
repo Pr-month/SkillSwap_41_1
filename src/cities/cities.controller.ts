@@ -8,10 +8,12 @@ import {
   Delete,
   HttpStatus,
   HttpCode,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CitiesService } from './cities.service';
 import { CreateCityDto } from './dto/create-city.dto';
+import { GetCitiesQueryDto } from './dto/get-cities-query.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -31,22 +33,24 @@ export class CitiesController {
   }
 
   @Get()
-  findAll() {
-    return this.citiesService.findAll();
+  findAll(@Query() query: GetCitiesQueryDto) {
+    return this.citiesService.findAll(query);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.citiesService.findOne(+id);
+    return this.citiesService.findOne(id);
   }
 
   @Patch(':id')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
-    return this.citiesService.update(+id, updateCityDto);
+    return this.citiesService.update(id, updateCityDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.citiesService.remove(+id);
+    return this.citiesService.remove(id);
   }
 }

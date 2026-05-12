@@ -1,38 +1,48 @@
 import { DataSource, IsNull } from 'typeorm';
+import { dbConfig } from '../config/db.config';
 import { Category } from '../categories/entities/category.entity';
-import { CategoriesData } from './data/categories.array';
+import { CategoriesData } from './categories.array';
 
-export async function seedCategories(dataSource: DataSource) {
-  const categoryRepository = dataSource.getRepository(Category);
+export async function seedCategories() {
+  const dataSource = new DataSource(dbConfig());
 
-  for (const item of CategoriesData) {
-    const existingParent = await categoryRepository.findOne({
-      where: { name: item.name, parent: IsNull() },
-    });
+  try {
+    await dataSource.initialize();
+    const categoryRepository = dataSource.getRepository(Category);
 
-    const parent =
-      existingParent ??
-      (await categoryRepository.save(
-        categoryRepository.create({
-          name: item.name,
-          parent: null,
-        }),
-      ));
-
-    for (const childName of item.children ?? []) {
-      const existingChild = await categoryRepository.findOne({
-        where: { name: childName, parent: { id: parent.id } },
-        relations: { parent: true },
+    for (const item of CategoriesData) {
+      const existingParent = await categoryRepository.findOne({
+        where: { name: item.name, parent: IsNull() },
       });
 
-      if (!existingChild) {
-        await categoryRepository.save(
+      const parent =
+        existingParent ??
+        (await categoryRepository.save(
           categoryRepository.create({
-            name: childName,
-            parent,
+            name: item.name,
+            parent: null,
           }),
-        );
+        ));
+
+      for (const childName of item.children ?? []) {
+        const existingChild = await categoryRepository.findOne({
+          where: { name: childName, parent: { id: parent.id } },
+          relations: { parent: true },
+        });
+
+        if (!existingChild) {
+          await categoryRepository.save(
+            categoryRepository.create({
+              name: childName,
+              parent,
+            }),
+          );
+        }
       }
     }
+  } finally {
+    await dataSource.destroy();
   }
 }
+
+void seedCategories();

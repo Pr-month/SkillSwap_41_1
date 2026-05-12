@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Response } from 'express';
-import { SocketWithUser } from 'src/notifications/notifications.type';
+import { SocketWithUser } from '../../notifications/notifications.type';
 import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 
 @Catch()

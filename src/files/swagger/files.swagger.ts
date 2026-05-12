@@ -43,7 +43,7 @@ export const ApiUploadFile = () =>
       },
     }),
 
-    // поменять Error на BadRequestException в multer
+    // поменять Error на BadRequestException в multer 
     ApiBadRequestResponse({
       description: 'Only image files are allowed',
     }),
