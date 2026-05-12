@@ -1,20 +1,21 @@
 import {
   Injectable,
   NotFoundException,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsRelations, Repository } from 'typeorm';
+
 import { IRequestWithUser } from '../auth/auth.types';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/entities/enums/users.enums';
+
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
-import { IRequestWithUser } from '../auth/auth.types';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from './entities/request.entity';
-import { UserRole } from '../users/entities/enums/users.enums';
+import { RequestStatus } from './entities/request.enum';
 
 @Injectable()
 export class RequestsService {
@@ -27,7 +28,11 @@ export class RequestsService {
 
   constructor(
     @InjectRepository(Request)
-    private readonly requestRepository: Repository<Request>,
+    private readonly requestsRepository: Repository<Request>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(Skill)
+    private readonly skillsRepository: Repository<Skill>,
   ) {}
 
   async create(createRequestDto: CreateRequestDto, senderId: string) {
@@ -88,12 +93,32 @@ export class RequestsService {
     return `This action returns all requests`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} request`;
   }
 
-  update(id: number, updateRequestDto: UpdateRequestDto) {
-    return `This action updates a #${id} request`;
+  async update(
+    id: string,
+    updateRequestDto: UpdateRequestDto,
+    req: IRequestWithUser,
+  ) {
+    const request = await this.requestsRepository.findOne({
+      where: { id },
+      relations: { receiver: true },
+    });
+
+    if (!request) {
+      throw new NotFoundException('Заявка не найдена');
+    }
+
+    if (request.receiver.id !== req.user.sub) {
+      throw new ForbiddenException(
+        'Вы можете обновлять статус только у входящих заявок',
+      );
+    }
+
+    request.status = updateRequestDto.status;
+    return await this.requestsRepository.save(request);
   }
 
   async findIncoming(userId: string): Promise<Request[]> {
@@ -104,7 +129,7 @@ export class RequestsService {
     });
   }
 
-  findOutgoing(userId: string) {
+  async findOutgoing(userId: string): Promise<Request[]> {
     return this.requestsRepository.find({
       where: { sender: { id: userId } },
       relations: this.requestRelations,
@@ -129,6 +154,6 @@ export class RequestsService {
         'You are not authorized to delete this request',
       );
     }
-    await this.requestRepository.remove(request);
+    await this.requestsRepository.remove(request);
   }
 }

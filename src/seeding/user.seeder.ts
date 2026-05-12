@@ -4,7 +4,7 @@ import { appConfig, IAppConfig } from '../config/app.config';
 import { User } from '../users/entities/user.entity';
 import { testUsers } from './user.array';
 import { dbConfig } from '../config/db.config';
-import { City } from 'src/city/entities/city.entities';
+import { City } from '../city/entities/city.entities';
 
 async function seedUsers() {
   const dataSource = new DataSource(dbConfig());

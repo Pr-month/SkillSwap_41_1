@@ -16,6 +16,8 @@ import { CreateSkillDto } from './dto/create-skill.dto';
 import { GetSkillsQueryDto } from './dto/GetSkillsQueryDto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { SkillsService } from './skills.service';
+import { Skill } from './entities/skill.entity';
+import { User } from '../users/entities/user.entity';
 
 @Controller('skills')
 export class SkillsController {
@@ -23,17 +25,22 @@ export class SkillsController {
 
   @UseGuards(AccessTokenGuard)
   @Post()
-  create(@Body() createSkillDto: CreateSkillDto, @Req() req: IRequestWithUser) {
+  create(
+    @Body() createSkillDto: CreateSkillDto,
+    @Req() req: IRequestWithUser,
+  ): Promise<Skill> {
     return this.skillsService.create(createSkillDto, req.user.sub);
   }
 
   @Get()
-  findAll(@Query() query: GetSkillsQueryDto) {
+  findAll(
+    @Query() query: GetSkillsQueryDto,
+  ): Promise<{ data: Skill[]; page: number; totalPages: number }> {
     return this.skillsService.findAll(query);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<Skill | null> {
     return this.skillsService.findOne(id);
   }
 
@@ -43,7 +50,7 @@ export class SkillsController {
     @Param('id') id: string,
     @Body() updateSkillDto: UpdateSkillDto,
     @Req() req: IRequestWithUser,
-  ) {
+  ): Promise<Skill | null> {
     return this.skillsService.update(id, updateSkillDto, req.user.sub);
   }
 
@@ -55,7 +62,10 @@ export class SkillsController {
 
   @UseGuards(AccessTokenGuard)
   @Post(':id/favorite')
-  addToFavorite(@Param('id') id: string, @Req() req: IRequestWithUser) {
+  addToFavorite(
+    @Param('id') id: string,
+    @Req() req: IRequestWithUser,
+  ): Promise<User> {
     return this.skillsService.addToFavorite(id, req.user.sub);
   }
 }

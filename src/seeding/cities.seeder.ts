@@ -1,7 +1,7 @@
-import { City } from 'src/city/entities/city.entities';
+import { City } from '../city/entities/city.entities';
 import { DataSource } from 'typeorm';
 import { citiesData } from './cities.array';
-import { dbConfig } from 'src/config/db.config';
+import { dbConfig } from '../config/db.config';
 
 async function seedCities() {
   const dataSource = new DataSource(dbConfig());

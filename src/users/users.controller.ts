@@ -27,6 +27,7 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from './entities/enums/users.enums';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { User } from './entities/user.entity';
 
 @ApiTags('users')
 @Controller('users')
@@ -42,20 +43,23 @@ export class UsersController {
   @UseGuards(AccessTokenGuard)
   @Get('me')
   @ApiGetUser()
-  getMe(@Req() req: IRequestWithUser) {
+  getMe(@Req() req: IRequestWithUser): Promise<User | null> {
     return this.usersService.findById(req.user.sub);
   }
 
   @Get(':id')
   @ApiGetUserById()
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<User | null> {
     return this.usersService.findOne(id);
   }
 
   @UseGuards(AccessTokenGuard)
   @Patch('me')
   @ApiUpdateUser()
-  update(@Req() req: IRequestWithUser, @Body() updateUserDto: UpdateUserDto) {
+  update(
+    @Req() req: IRequestWithUser,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<User | null> {
     return this.usersService.updateMe(req.user.sub, updateUserDto);
   }
 

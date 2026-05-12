@@ -1,9 +1,9 @@
-import { dbConfig } from 'src/config/db.config';
 import { DataSource } from 'typeorm';
+import { dbConfig } from '../config/db.config';
 import { SkillsData } from './skills.array';
-import { Skill } from 'src/skills/entities/skill.entity';
-import { Category } from 'src/categories/entities/category.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Skill } from '../skills/entities/skill.entity';
+import { Category } from '../categories/entities/category.entity';
+import { User } from '../users/entities/user.entity';
 
 async function seedSkills() {
   const dataSource = new DataSource(dbConfig());

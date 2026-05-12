@@ -21,9 +21,13 @@ import { IRequestWithUser } from '../auth/auth.types';
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
+  @UseGuards(AccessTokenGuard)
   @Post()
-  create(@Body() createRequestDto: CreateRequestDto) {
-    return this.requestsService.create(createRequestDto);
+  create(
+    @Body() createRequestDto: CreateRequestDto,
+    @Req() req: IRequestWithUser,
+  ) {
+    return this.requestsService.create(createRequestDto, req.user.sub);
   }
 
   @Get()
@@ -37,14 +41,25 @@ export class RequestsController {
     return this.requestsService.findOutgoing(req.user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requestsService.findOne(+id);
+  @UseGuards(AccessTokenGuard)
+  @Get('incoming')
+  getIncoming(@Req() req: IRequestWithUser) {
+    return this.requestsService.findIncoming(req.user.sub);
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.requestsService.findOne(id);
+  }
+
+  @UseGuards(AccessTokenGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestsService.update(+id, updateRequestDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateRequestDto: UpdateRequestDto,
+    @Req() req: IRequestWithUser,
+  ) {
+    return this.requestsService.update(id, updateRequestDto, req);
   }
 
   @UseGuards(AccessTokenGuard)
@@ -52,6 +67,6 @@ export class RequestsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
     await this.requestsService.remove(id, req);
-    return { message: 'Request deleted successfully' };
+    return { message: 'Заявка успешно удалена' };
   }
 }
