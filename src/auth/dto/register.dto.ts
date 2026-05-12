@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsDateString,
   IsEmail,
   IsEnum,
@@ -9,8 +10,6 @@ import {
   MinLength,
 } from 'class-validator';
 import { Gender } from '../../users/entities/enums/users.enums';
-import { Skill } from '../../skills/entities/skill.entity';
-import { Category } from '../../categories/entities/category.entity';
 
 export class RegisterDto {
   @MinLength(2)
@@ -23,7 +22,7 @@ export class RegisterDto {
   @IsNotEmpty()
   about: string;
   @IsDateString()
-  birthday: Date;
+  birthdate: Date;
   @IsNotEmpty()
   city: string;
   @IsNotEmpty()
@@ -33,7 +32,7 @@ export class RegisterDto {
   @IsString()
   avatar: string;
   @IsOptional()
-  wantToLearn: Category;
-  @IsOptional()
-  skills: Skill;
+  @IsArray()
+  @IsString({ each: true })
+  wantToLearn: string[];
 }

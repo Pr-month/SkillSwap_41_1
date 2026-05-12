@@ -9,62 +9,32 @@ import { appConfig, IAppConfig } from './../config/app.config';
 import { JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserRole } from '../users/entities/enums/users.enums';
-import { Skill } from 'src/skills/entities/skill.entity';
-import { Category } from 'src/categories/entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response, CookieOptions } from 'express';
 import { JwtPayload } from './auth.types';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(Skill)
-    private readonly skillRepository: Repository<Skill>,
     @Inject(appConfig.KEY)
     private readonly configService: IAppConfig,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfigService: IJwtConfig,
     private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
   ) {}
 
   async register(createAuthDto: RegisterDto) {
-    const user = this.userRepository.create({
-      name: createAuthDto.name,
-      email: createAuthDto.email,
-      about: createAuthDto.about,
-      birthdate: createAuthDto.birthday,
-      city: createAuthDto.city,
-      gender: createAuthDto.gender,
-      avatar: createAuthDto.avatar,
-      password: await bcrypt.hash(
-        createAuthDto.password,
-        this.configService.hashSalt,
-      ),
+    const { password, ...rest } = createAuthDto;
+
+    const user = await this.usersService.create({
+      ...rest,
+      password: await bcrypt.hash(password, this.configService.hashSalt),
       role: UserRole.USER,
     });
-    // TODO: Закомментировано до реализации скиллов и категорий
-    //
-    // const skill = this.skillRepository.create({
-    //   title: createAuthDto.skills.title,
-    //   description: createAuthDto.skills.description,
-    //   category: createAuthDto.skills.category,
-    //   images: createAuthDto.skills.images,
-    //   owner: user,
-    // });
-
-    // const category = await this.categoryRepository.findOne({
-    //   where: { id: createAuthDto.wantToLearn.id },
-    // });
-    // if (!category) throw new BadRequestException('Category not found');
-
-    // user.wantToLearn = [category];
-    // user.skills = [skill];
-
-    await this.userRepository.save(user);
 
     const tokens = this.generateTokens(user.id, user.email, user.role);
     user.refreshToken = await bcrypt.hash(
@@ -72,10 +42,8 @@ export class AuthService {
       this.configService.hashSalt,
     );
     await this.userRepository.save(user);
-    return {
-      user,
-      tokens,
-    };
+
+    return { user, tokens };
   }
 
   async refresh(userId: string, oldRefreshToken: string) {
