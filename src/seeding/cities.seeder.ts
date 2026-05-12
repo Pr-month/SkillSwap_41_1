@@ -1,10 +1,8 @@
-import { City } from '../city/entities/city.entities';
 import { DataSource } from 'typeorm';
+import { City } from '../city/entities/city.entities';
 import { citiesData } from './cities.array';
-import { dbConfig } from '../config/db.config';
 
-async function seedCities() {
-  const dataSource = new DataSource(dbConfig());
+export async function seedCities(dataSource: DataSource) {
 
   try {
     await dataSource.initialize();
@@ -39,5 +37,3 @@ async function seedCities() {
     console.log('Seeding cities completed.');
   }
 }
-
-void seedCities();

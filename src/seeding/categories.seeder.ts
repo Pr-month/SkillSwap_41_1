@@ -1,10 +1,8 @@
 import { DataSource, IsNull } from 'typeorm';
-import { dbConfig } from '../config/db.config';
 import { Category } from '../categories/entities/category.entity';
 import { CategoriesData } from './categories.array';
 
-export async function seedCategories() {
-  const dataSource = new DataSource(dbConfig());
+export async function seedCategories(dataSource: DataSource) {
 
   try {
     await dataSource.initialize();
@@ -44,5 +42,3 @@ export async function seedCategories() {
     await dataSource.destroy();
   }
 }
-
-void seedCategories();

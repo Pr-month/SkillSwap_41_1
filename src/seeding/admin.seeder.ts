@@ -1,12 +1,10 @@
-import { DataSource } from 'typeorm';
-import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from '../users/entities/enums/users.enums';
+import { DataSource } from 'typeorm';
 import { appConfig, IAppConfig } from '../config/app.config';
-import { dbConfig } from '../config/db.config';
+import { UserRole } from '../users/entities/enums/users.enums';
+import { User } from '../users/entities/user.entity';
 
-async function seedAdmin() {
-  const dataSource = new DataSource(dbConfig());
+export async function seedAdmin(dataSource: DataSource) {
   const config: IAppConfig = appConfig();
 
   try {
@@ -42,5 +40,3 @@ async function seedAdmin() {
     console.log('Seeding admin complete.');
   }
 }
-
-void seedAdmin();

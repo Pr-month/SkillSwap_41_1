@@ -5,9 +5,7 @@ import { Skill } from '../skills/entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 
-async function seedSkills() {
-  const dataSource = new DataSource(dbConfig());
-
+export async function seedSkills(dataSource: DataSource) {
   try {
     await dataSource.initialize();
 
@@ -63,5 +61,3 @@ async function seedSkills() {
     await dataSource.destroy();
   }
 }
-
-void seedSkills();
