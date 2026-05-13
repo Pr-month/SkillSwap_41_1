@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
 import { dbConfig } from '../config/db.config';
 import { seedCategories } from './categories.seeder';
-import { seedAdmin } from './admin.seeder';
 import { seedCities } from './cities.seeder';
+import { seedAdmin } from './admin.seeder';
 import { seedUsers } from './user.seeder';
 import { seedSkills } from './skills.seeder';
 
