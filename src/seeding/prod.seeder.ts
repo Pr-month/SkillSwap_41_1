@@ -5,7 +5,9 @@ import { seedCategories } from './categories.seeder';
 import { seedCities } from './cities.seeder';
 
 async function runProdSeeder() {
-  console.log('Run prod seeding...');
+  console.log('Starting PROD database seeding');
+
+  console.log(`Using database: ${process.env.DB_NAME}`);
   const dataSource = new DataSource(dbConfig());
 
   try {

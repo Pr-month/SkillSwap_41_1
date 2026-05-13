@@ -1,18 +1,23 @@
 import { DataSource } from 'typeorm';
 import { dbConfig } from '../config/db.config';
 import { seedCategories } from './categories.seeder';
-import { seedAdmin } from './admin.seeder';
 import { seedCities } from './cities.seeder';
+import { seedAdmin } from './admin.seeder';
 import { seedUsers } from './user.seeder';
 import { seedSkills } from './skills.seeder';
 
 async function runTestSeeder() {
   console.log('Run test seeding...');
+  console.log(`Using database: ${process.env.DB_NAME}`);
+
   const dataSource = new DataSource(dbConfig());
 
   try {
     await dataSource.initialize();
     console.log('Database connected.');
+
+    await dataSource.synchronize(true);
+    console.log('Database cleared & synchronized.');
 
     await seedCategories(dataSource);
     console.log('Categories seeded.');
