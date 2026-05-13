@@ -16,8 +16,7 @@ async function runTestSeeder() {
     await dataSource.initialize();
     console.log('Database connected.');
 
-    await dataSource.dropDatabase();
-    await dataSource.synchronize();
+    await dataSource.synchronize(true);
     console.log('Database cleared & synchronized.');
 
     await seedCategories(dataSource);
