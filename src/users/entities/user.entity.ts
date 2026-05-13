@@ -5,9 +5,11 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  ManyToOne
 } from 'typeorm';
 import { Skill } from '../../skills/entities/skill.entity';
 import { Category } from '../../categories/entities/category.entity';
+import { City } from '../../cities/entities/city.entity';
 import { UserRole, Gender } from './enums/users.enums';
 import { Exclude } from 'class-transformer';
 
@@ -32,8 +34,8 @@ export class User {
   @Column({ type: 'date', nullable: true })
   birthdate!: Date | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  city!: string | null;
+  @ManyToOne(() => City, { nullable: true })
+  city!: City | null;
 
   @Column({ type: 'enum', enum: Gender, nullable: true })
   gender!: Gender | null;

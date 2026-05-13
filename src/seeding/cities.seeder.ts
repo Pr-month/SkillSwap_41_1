@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { City } from '../city/entities/city.entities';
+import { City } from '../cities/entities/city.entity';
 import { citiesData } from './cities.array';
 
 export async function seedCities(dataSource: DataSource) {

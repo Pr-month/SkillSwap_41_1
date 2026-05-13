@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
-import { City } from '../city/entities/city.entities';
+import { City } from '../cities/entities/city.entity';
 import { appConfig, IAppConfig } from '../config/app.config';
 import { User } from '../users/entities/user.entity';
 import { testUsers } from './user.array';
@@ -36,7 +36,7 @@ export async function seedUsers(dataSource: DataSource) {
         password: await bcrypt.hash(userData.password, config.hashSalt),
         about: userData.about ?? null,
         birthdate: userData.birthdate ? new Date(userData.birthdate) : null,
-        city: city?.name ?? null,
+        city: city ?? null,
         gender: userData.gender ?? null,
         avatar: null,
         role: userData.role,
