@@ -8,11 +8,17 @@ import { seedSkills } from './skills.seeder';
 
 async function runTestSeeder() {
   console.log('Run test seeding...');
+  console.log(`Using database: ${process.env.DB_NAME}`);
+
   const dataSource = new DataSource(dbConfig());
 
   try {
     await dataSource.initialize();
     console.log('Database connected.');
+
+    await dataSource.dropDatabase();
+    await dataSource.synchronize();
+    console.log('Database cleared & synchronized.');
 
     await seedCategories(dataSource);
     console.log('Categories seeded.');
