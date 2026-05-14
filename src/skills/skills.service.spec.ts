@@ -29,6 +29,7 @@ describe('SkillsService', () => {
 
   const mockUsersRepository = {
     findOne: jest.fn(),
+    find: jest.fn(),
     save: jest.fn(),
   };
 
@@ -389,6 +390,42 @@ describe('SkillsService', () => {
         service.addToFavorite('skill-uuid-1', 'user-uuid-1'),
       ).rejects.toThrow('Skill is already in favorites');
     });
-  })
-});
+  });
 
+  describe('getSimilarUsersForSkill', () => {
+    const skillId = 'skill-uuid-similar';
+    const skill = {
+      id: skillId,
+      category: { id: 'category-uuid-1' },
+      owner: { id: 'user-uuid-owner' },
+    } as Skill;
+
+    it('Сервис должен вызывать findOne и find', async () => {
+      mockSkillsRepository.findOne.mockResolvedValue(skill);
+      mockUsersRepository.find.mockResolvedValue([]);
+
+      await service.getSimilarUsersForSkill(skillId);
+
+      expect(mockSkillsRepository.findOne).toHaveBeenCalled();
+      expect(mockUsersRepository.find).toHaveBeenCalled();
+    });
+
+    it('Сервис должен вернуть результат find пользователей', async () => {
+      const users = [{ id: 'user-uuid-2' } as User];
+      mockSkillsRepository.findOne.mockResolvedValue(skill);
+      mockUsersRepository.find.mockResolvedValue(users);
+
+      await expect(service.getSimilarUsersForSkill(skillId)).resolves.toEqual(
+        users,
+      );
+    });
+
+    it('Сервис должен выбросить NotFound если навык не найден', async () => {
+      mockSkillsRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getSimilarUsersForSkill(skillId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+});
