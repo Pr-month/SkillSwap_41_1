@@ -45,18 +45,28 @@ export class SkillsService {
   }
 
   async findAll(query: GetSkillsQueryDto) {
-    const { page, limit } = query;
+    const { page, limit, search, category } = query;
     const skip = (page - 1) * limit;
+    const qb = this.skillsRepository.createQueryBuilder('skill');
 
-    const [data, total] = await this.skillsRepository.findAndCount({
-      skip,
-      take: limit,
-    });
+    if (category) {
+      qb.andWhere('skill.categoryId = :category', { category });
+    }
+
+    if (search?.trim()) {
+      qb.andWhere('skill.title ILIKE :search', {
+        search: `%${search.trim()}%`,
+      });
+    }
+
+    qb.skip(skip).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
 
     const totalPages = Math.ceil(total / limit);
 
     const lastPage = total === 0 ? 1 : totalPages;
-    
+
     if (page > lastPage) {
       throw new NotFoundException('Page not found');
     }
