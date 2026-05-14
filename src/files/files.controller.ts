@@ -4,6 +4,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
@@ -21,6 +22,9 @@ export class FilesController {
   @ApiUploadFile()
   @UseInterceptors(FileInterceptor('file', multerConfig))
   upload(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
     const result =
       req.protocol +
       '://' +

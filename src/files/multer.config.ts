@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -29,7 +30,7 @@ const fileFilter = (
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed'), false);
+    cb(null, false);
   }
 };
 export const multerConfig: MulterOptions = {
