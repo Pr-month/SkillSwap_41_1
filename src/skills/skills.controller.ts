@@ -18,7 +18,10 @@ import { UpdateSkillDto } from './dto/update-skill.dto';
 import { SkillsService } from './skills.service';
 import { Skill } from './entities/skill.entity';
 import { User } from '../users/entities/user.entity';
+import { ApiTags } from '@nestjs/swagger';
+import { ApiGetSimilarUsersForSkill } from './swagger/skills.swagger';
 
+@ApiTags('skills')
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
@@ -37,6 +40,12 @@ export class SkillsController {
     @Query() query: GetSkillsQueryDto,
   ): Promise<{ data: Skill[]; page: number; totalPages: number }> {
     return this.skillsService.findAll(query);
+  }
+
+  @Get(':id/similar')
+  @ApiGetSimilarUsersForSkill()
+  getSimilarUsersForSkill(@Param('id') id: string): Promise<User[]> {
+    return this.skillsService.getSimilarUsersForSkill(id);
   }
 
   @Get(':id')

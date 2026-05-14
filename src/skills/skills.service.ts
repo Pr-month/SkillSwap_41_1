@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
@@ -56,7 +56,7 @@ export class SkillsService {
     const totalPages = Math.ceil(total / limit);
 
     const lastPage = total === 0 ? 1 : totalPages;
-    
+
     if (page > lastPage) {
       throw new NotFoundException('Page not found');
     }
@@ -163,5 +163,22 @@ export class SkillsService {
     user.favoriteSkills.push(skill);
 
     return this.usersRepository.save(user);
+  }
+
+  async getSimilarUsersForSkill(id: string): Promise<User[]> {
+    const skill = await this.findOne(id);
+    const categoryId = skill.category.id;
+
+    const users = await this.usersRepository.find({
+      where: {
+        id: Not(skill.owner.id),
+        skills: {
+          category: { id: categoryId },
+        },
+      },
+      take: 10,
+    });
+
+    return users;
   }
 }
