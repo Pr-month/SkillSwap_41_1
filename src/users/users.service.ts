@@ -12,6 +12,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { Category } from '../categories/entities/category.entity';
 import { UserRole } from './entities/enums/users.enums';
+import { City } from '../cities/entities/city.entity';
 
 const userProfileRelations = {
   skills: true,
@@ -26,10 +27,12 @@ export class UsersService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Category)
     private readonly categoryRepo: Repository<Category>,
+    @InjectRepository(City)
+    private readonly cityRepo: Repository<City>,
   ) {}
 
   async create(createUserDto: CreateUserInput): Promise<User> {
-    const { wantToLearn, role, ...rest } = createUserDto;
+    const { wantToLearn, cityId, role, ...rest } = createUserDto;
 
     const duplicate = await this.userRepo.findOne({
       where: { email: rest.email },
@@ -38,8 +41,17 @@ export class UsersService {
       throw new ConflictException('User with this email already exists');
     }
 
+    let city: City | null = null;
+    if (cityId) {
+      city = await this.cityRepo.findOne({ where: { id: cityId } });
+      if (!city) {
+        throw new BadRequestException('City not found');
+      }
+    }
+
     const user = this.userRepo.create({
       ...rest,
+      city,
       role: role ?? UserRole.USER,
     });
 

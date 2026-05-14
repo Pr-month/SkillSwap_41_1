@@ -36,7 +36,7 @@ export class CitiesService {
     return `This action returns a #${id} city`;
   }
 
-  async update(id: string, updateCityDto: UpdateCityDto) {
+  async update(id: number, updateCityDto: UpdateCityDto) {
     const city = await this.cityRepository.findOneBy({ id });
 
     if (!city) {

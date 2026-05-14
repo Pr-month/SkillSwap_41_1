@@ -6,7 +6,7 @@ export interface CreateUserInput {
   password?: string;
   about?: string;
   birthdate?: Date;
-  city?: string;
+  cityId?: number;
   gender?: Gender;
   avatar?: string;
   role?: UserRole;

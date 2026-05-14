@@ -13,26 +13,26 @@ import { Gender } from '../../users/entities/enums/users.enums';
 
 export class RegisterDto {
   @MinLength(2)
-  name: string;
+  name!: string;
   @IsEmail()
-  email: string;
+  email!: string;
   @MinLength(8)
   @MaxLength(16)
-  password: string;
+  password!: string;
   @IsNotEmpty()
-  about: string;
+  about!: string;
   @IsDateString()
-  birthdate: Date;
+  birthdate!: Date;
   @IsNotEmpty()
-  city: string;
+  cityId!: number;
   @IsNotEmpty()
   @IsEnum(Gender)
-  gender: Gender;
+  gender!: Gender;
   @IsOptional()
   @IsString()
-  avatar: string;
+  avatar?: string;
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  wantToLearn: string[];
+  wantToLearn?: string[];
 }

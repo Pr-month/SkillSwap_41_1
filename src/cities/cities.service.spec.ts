@@ -35,18 +35,18 @@ describe('CitiesService', () => {
   });
 
   it('returns cities sorted by name without search', async () => {
-    cityRepositoryMock.find.mockResolvedValue([{ id: '1', name: 'Berlin' }]);
+    cityRepositoryMock.find.mockResolvedValue([{ id: 1, name: 'Berlin' }]);
 
     const result = await service.findAll({ search: '' });
 
     expect(cityRepositoryMock.find).toHaveBeenCalledWith({
       order: { name: 'ASC' },
     });
-    expect(result).toEqual([{ id: '1', name: 'Berlin' }]);
+    expect(result).toEqual([{ id: 1, name: 'Berlin' }]);
   });
 
   it('filters cities by search query', async () => {
-    cityRepositoryMock.find.mockResolvedValue([{ id: '1', name: 'Paris' }]);
+    cityRepositoryMock.find.mockResolvedValue([{ id: 1, name: 'Paris' }]);
 
     const result = await service.findAll({ search: 'par' });
 
@@ -54,27 +54,27 @@ describe('CitiesService', () => {
       where: expect.objectContaining({ name: expect.any(Object) }),
       order: { name: 'ASC' },
     });
-    expect(result).toEqual([{ id: '1', name: 'Paris' }]);
+    expect(result).toEqual([{ id: 1, name: 'Paris' }]);
   });
 
   it('updates an existing city', async () => {
-    cityRepositoryMock.findOneBy.mockResolvedValue({ id: '1', name: 'Paris' });
-    cityRepositoryMock.save.mockResolvedValue({ id: '1', name: 'Lyon' });
+    cityRepositoryMock.findOneBy.mockResolvedValue({ id: 1, name: 'Paris' });
+    cityRepositoryMock.save.mockResolvedValue({ id: 1, name: 'Lyon' });
 
-    const result = await service.update('1', { name: 'Lyon' });
+    const result = await service.update(1, { name: 'Lyon' });
 
-    expect(cityRepositoryMock.findOneBy).toHaveBeenCalledWith({ id: '1' });
+    expect(cityRepositoryMock.findOneBy).toHaveBeenCalledWith({ id: 1 });
     expect(cityRepositoryMock.save).toHaveBeenCalledWith({
-      id: '1',
+      id: 1,
       name: 'Lyon',
     });
-    expect(result).toEqual({ id: '1', name: 'Lyon' });
+    expect(result).toEqual({ id: 1, name: 'Lyon' });
   });
 
   it('throws when city is not found during update', async () => {
     cityRepositoryMock.findOneBy.mockResolvedValue(null);
 
-    await expect(service.update('1', { name: 'Lyon' })).rejects.toBeInstanceOf(
+    await expect(service.update(1, { name: 'Lyon' })).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });

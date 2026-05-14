@@ -1,8 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-@Entity('cities')
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('city')
 export class City {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
+
   @Column({ type: 'varchar', length: 100, unique: true })
-  name: string;
+  name!: string;
 }
