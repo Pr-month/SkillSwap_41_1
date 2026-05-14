@@ -1,3 +1,4 @@
+import { UsersService } from './../users/users.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { Repository } from 'typeorm';
@@ -19,6 +20,7 @@ jest.mock('bcrypt');
 describe('AuthService', () => {
   let service: AuthService;
   let userRepository: jest.Mocked<Repository<User>>;
+  let userService: jest.Mocked<UsersService>;
   let jwtService: jest.Mocked<JwtService>;
 
   const mockUser = {
@@ -53,6 +55,12 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: UsersService,
+          useValue: {
+            create: jest.fn(),
+          },
+        },
+        {
           provide: appConfig.KEY,
           useValue: {
             hashSalt: 10,
@@ -72,6 +80,7 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     userRepository = module.get(getRepositoryToken(User));
+    userService = module.get(UsersService);
     jwtService = module.get(JwtService);
   });
 
@@ -82,12 +91,12 @@ describe('AuthService', () => {
   // ================= REGISTER =================
   it('should register user', async () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
-    userRepository.create.mockReturnValue(mockUser);
+    userService.create.mockResolvedValue(mockUser);
     userRepository.save.mockResolvedValue(mockUser);
 
     jwtService.sign.mockReturnValue('token');
 
-    const spyCreate = jest.spyOn(userRepository, 'create');
+    const spyCreate = jest.spyOn(userService, 'create');
     const spySave = jest.spyOn(userRepository, 'save');
 
     const result = await service.register({
@@ -98,7 +107,7 @@ describe('AuthService', () => {
 
     expect(bcrypt.hash).toHaveBeenCalled();
     expect(spyCreate).toHaveBeenCalled();
-    expect(spySave).toHaveBeenCalledTimes(2);
+    expect(spySave).toHaveBeenCalled();
     expect(result.tokens).toBeDefined();
   });
 

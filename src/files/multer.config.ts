@@ -29,7 +29,7 @@ const fileFilter = (
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed'), false);
+    cb(null, false);
   }
 };
 export const multerConfig: MulterOptions = {
