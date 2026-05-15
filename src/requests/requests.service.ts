@@ -42,10 +42,12 @@ export class RequestsService {
     const [sender, offeredSkill, requestedSkill] = await Promise.all([
       this.usersRepository.findOne({ where: { id: senderId } }),
       this.skillsRepository.findOne({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         where: { id: createRequestDto.offeredSkillId },
         relations: { owner: true, category: true },
       }),
       this.skillsRepository.findOne({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         where: { id: createRequestDto.requestedSkillId },
         relations: { owner: true, category: true },
       }),
@@ -125,6 +127,7 @@ export class RequestsService {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     request.status = updateRequestDto.status;
     const updatedRequest = await this.requestsRepository.save(request);
 

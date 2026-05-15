@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Body,
   Query,
+  Post,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -70,5 +71,27 @@ export class UsersController {
   @ApiDeleteUser()
   async remove(@Param('id') id: string) {
     await this.usersService.remove(id);
+  }
+
+  // categories
+  @UseGuards(AccessTokenGuard)
+  @Get('me/want-to-learn')
+  @ApiGetUser()
+  findAllCategories(@Req() req: IRequestWithUser): Promise<User | null> {
+    return this.usersService.findById(req.user.sub);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post('me/want-to-learn/:categoryId')
+  @ApiGetUser()
+  createCategory(@Req() req: IRequestWithUser): Promise<User | null> {
+    return this.usersService.findById(req.user.sub);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Delete('me/want-to-learn/:categoryId')
+  @ApiGetUser()
+  removeCategory(@Req() req: IRequestWithUser): Promise<User | null> {
+    return this.usersService.findById(req.user.sub);
   }
 }
