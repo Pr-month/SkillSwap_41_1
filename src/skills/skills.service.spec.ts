@@ -13,6 +13,13 @@ import { User } from '../users/entities/user.entity';
 describe('SkillsService', () => {
   let service: SkillsService;
 
+  const mockQueryBuilder = {
+    andWhere: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getManyAndCount: jest.fn(),
+  };
+
   const mockSkillsRepository = {
     create: jest.fn(),
     save: jest.fn(),
@@ -20,6 +27,7 @@ describe('SkillsService', () => {
     findOne: jest.fn(),
     findOneOrFail: jest.fn(),
     remove: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
   };
 
   const mockCategoriesRepository = {
@@ -142,21 +150,20 @@ describe('SkillsService', () => {
     ];
 
     it('Сервис должен вернуть все навыки с пагинацией', async () => {
-      mockSkillsRepository.findAndCount.mockResolvedValue([skills, 2]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([skills, 2]);
 
       const result = await service.findAll({ page: 1, limit: 20, search: '' });
 
-      expect(mockSkillsRepository.findAndCount).toHaveBeenCalledWith({
-        skip: 0,
-        take: 20,
-      });
+      expect(mockSkillsRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'skill',
+      );
       expect(result.data).toEqual(skills);
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
     });
 
     it('Сервис должен вернуть пустой массив когда навыков нет', async () => {
-      mockSkillsRepository.findAndCount.mockResolvedValue([[], 0]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
 
       const result = await service.findAll({ page: 1, limit: 20, search: '' });
 
@@ -165,7 +172,7 @@ describe('SkillsService', () => {
     });
 
     it('Сервис должен выбросить NotFoundException когда страница не найдена', async () => {
-      mockSkillsRepository.findAndCount.mockResolvedValue([skills, 2]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([skills, 2]);
 
       await expect(
         service.findAll({ page: 10, limit: 20, search: '' }),
@@ -176,7 +183,7 @@ describe('SkillsService', () => {
     });
 
     it('Сервис должен корректно вычислить общее количество страниц', async () => {
-      mockSkillsRepository.findAndCount.mockResolvedValue([skills, 25]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([skills, 25]);
 
       const result = await service.findAll({ page: 1, limit: 10, search: '' });
 

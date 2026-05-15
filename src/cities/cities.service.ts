@@ -32,7 +32,7 @@ export class CitiesService {
     );
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     return `This action returns a #${id} city`;
   }
 
@@ -48,7 +48,7 @@ export class CitiesService {
     return this.cityRepository.save(city);
   }
 
-  remove(id: string) {
+  remove(id: number) {
     return `This action removes a #${id} city`;
   }
 }

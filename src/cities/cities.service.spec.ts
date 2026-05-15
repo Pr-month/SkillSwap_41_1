@@ -51,7 +51,8 @@ describe('CitiesService', () => {
     const result = await service.findAll({ search: 'par' });
 
     expect(cityRepositoryMock.find).toHaveBeenCalledWith({
-      where: expect.objectContaining({ name: expect.any(Object) }),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      where: expect.objectContaining({ name: expect.anything() }),
       order: { name: 'ASC' },
     });
     expect(result).toEqual([{ id: 1, name: 'Paris' }]);

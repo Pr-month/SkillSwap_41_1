@@ -33,7 +33,7 @@ export async function seedUsers(dataSource: DataSource) {
       password: await bcrypt.hash(userData.password, config.hashSalt),
       about: userData.about ?? null,
       birthdate: userData.birthdate ? new Date(userData.birthdate) : null,
-      city: city?.name ?? null,
+      city: city,
       gender: userData.gender ?? null,
       avatar: null,
       role: userData.role,
