@@ -33,22 +33,22 @@ describe('CitiesController', () => {
   });
 
   it('delegates city search to the service', async () => {
-    citiesServiceMock.findAll.mockResolvedValue([{ id: '1', name: 'Berlin' }]);
+    citiesServiceMock.findAll.mockResolvedValue([{ id: 1, name: 'Berlin' }]);
 
     const result = await controller.findAll({ search: 'ber' });
 
     expect(citiesServiceMock.findAll).toHaveBeenCalledWith({ search: 'ber' });
-    expect(result).toEqual([{ id: '1', name: 'Berlin' }]);
+    expect(result).toEqual([{ id: 1, name: 'Berlin' }]);
   });
 
   it('delegates city update to the service', async () => {
-    citiesServiceMock.update.mockResolvedValue({ id: '1', name: 'Lyon' });
+    citiesServiceMock.update.mockResolvedValue({ id: 1, name: 'Lyon' });
 
-    const result = await controller.update('1', { name: 'Lyon' });
+    const result = await controller.update(1, { name: 'Lyon' });
 
-    expect(citiesServiceMock.update).toHaveBeenCalledWith('1', {
+    expect(citiesServiceMock.update).toHaveBeenCalledWith(1, {
       name: 'Lyon',
     });
-    expect(result).toEqual({ id: '1', name: 'Lyon' });
+    expect(result).toEqual({ id: 1, name: 'Lyon' });
   });
 });

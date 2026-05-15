@@ -38,19 +38,19 @@ export class CitiesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.citiesService.findOne(id);
   }
 
   @Patch(':id')
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
+  update(@Param('id') id: number, @Body() updateCityDto: UpdateCityDto) {
     return this.citiesService.update(id, updateCityDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.citiesService.remove(id);
   }
 }

@@ -6,14 +6,28 @@ import { Server } from 'socket.io';
 
 const mockPayload = { sub: 'user-123', email: 'test@test.com' };
 
-const createMockClient = (): jest.Mocked<SocketWithUser> =>
-  ({
-    handshake: { query: { token: 'valid.jwt.token' } },
+const createMockClient = () => {
+  const joinMock = jest.fn<Promise<void>, [string]>();
+  const disconnectMock = jest.fn<void, [boolean?]>();
+
+  const client = {
+    handshake: {
+      query: {
+        token: 'valid.jwt.token',
+      },
+    },
     data: {},
-    join: jest.fn(),
-    disconnect: jest.fn(),
+    join: joinMock,
+    disconnect: disconnectMock,
     emit: jest.fn(),
-  }) as any;
+  } as unknown as jest.Mocked<SocketWithUser>;
+
+  return {
+    client,
+    joinMock,
+    disconnectMock,
+  };
+};
 
 const mockWsJwtService = {
   validate: jest.fn(),
@@ -41,47 +55,47 @@ describe('NotificationsGateway', () => {
 
   describe('handleConnection', () => {
     it('should authenticate the client, store user data, and join a room', async () => {
-      const client = createMockClient();
+      const { client, joinMock, disconnectMock } = createMockClient();
       mockWsJwtService.validate.mockReturnValue(mockPayload);
 
       await gateway.handleConnection(client);
 
       expect(mockWsJwtService.validate).toHaveBeenCalledWith(client);
       expect(client.data.user).toEqual(mockPayload);
-      expect(client.join).toHaveBeenCalledWith('user-123');
-      expect(client.disconnect).not.toHaveBeenCalled();
+      expect(joinMock).toHaveBeenCalledWith('user-123');
+      expect(disconnectMock).not.toHaveBeenCalled();
     });
 
     it('should disconnect if validate returns null', async () => {
-      const client = createMockClient();
+      const { client, joinMock, disconnectMock } = createMockClient();
       mockWsJwtService.validate.mockReturnValue(null);
 
       await gateway.handleConnection(client);
 
-      expect(client.disconnect).toHaveBeenCalled();
-      expect(client.join).not.toHaveBeenCalled();
+      expect(disconnectMock).toHaveBeenCalled();
+      expect(joinMock).not.toHaveBeenCalled();
     });
 
     it('should disconnect if validate returns a payload without sub', async () => {
-      const client = createMockClient();
+      const { client, joinMock, disconnectMock } = createMockClient();
       mockWsJwtService.validate.mockReturnValue({ email: 'test@test.com' }); // no sub
 
       await gateway.handleConnection(client);
 
-      expect(client.disconnect).toHaveBeenCalled();
-      expect(client.join).not.toHaveBeenCalled();
+      expect(disconnectMock).toHaveBeenCalled();
+      expect(joinMock).not.toHaveBeenCalled();
     });
 
     it('should disconnect if validate throws', async () => {
-      const client = createMockClient();
+      const { client, joinMock, disconnectMock } = createMockClient();
       mockWsJwtService.validate.mockImplementation(() => {
         throw new Error('Token expired');
       });
 
       await gateway.handleConnection(client);
 
-      expect(client.disconnect).toHaveBeenCalled();
-      expect(client.join).not.toHaveBeenCalled();
+      expect(disconnectMock).toHaveBeenCalled();
+      expect(joinMock).not.toHaveBeenCalled();
     });
   });
 
@@ -99,6 +113,7 @@ describe('NotificationsGateway', () => {
 
       gateway.notifyUser('user-123', payload);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(gateway.server.to).toHaveBeenCalledWith('user-123');
       expect(mockEmit).toHaveBeenCalledWith('notificateNewRequest', payload);
     });
@@ -114,6 +129,7 @@ describe('NotificationsGateway', () => {
         timeStamp: new Date(),
       });
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(gateway.server.to).not.toHaveBeenCalledWith('user-999');
     });
   });

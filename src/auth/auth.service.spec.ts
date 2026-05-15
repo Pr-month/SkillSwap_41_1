@@ -13,7 +13,6 @@ import { jwtConfig } from '../config/jwt.config';
 import { Category } from '../categories/entities/category.entity';
 import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
-import { Skill } from '../skills/entities/skill.entity';
 
 jest.mock('bcrypt');
 
