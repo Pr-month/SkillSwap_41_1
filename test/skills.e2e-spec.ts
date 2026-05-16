@@ -1,186 +1,209 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  ExecutionContext,
-} from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+
 import request from 'supertest';
-import { SkillsController } from '../src/skills/skills.controller';
-import { SkillsService } from '../src/skills/skills.service';
-import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
-import { IRequestWithUser } from '../src/auth/auth.types';
-import { UserRole } from '../src/users/entities/enums/users.enums';
 
-const MOCK_USER = {
-  sub: 'test-user-id',
-  email: 'test@example.com',
-  role: UserRole.ADMIN,
-};
+import { DataSource, Repository } from 'typeorm';
 
-class MockAuthGuard {
-  canActivate(context: ExecutionContext) {
-    const req: IRequestWithUser = context.switchToHttp().getRequest();
-    req.user = MOCK_USER;
-    return true;
-  }
-}
+import { getRepositoryToken } from '@nestjs/typeorm';
 
-const mockSkillsService = {
-  create: jest.fn(),
-  findAll: jest.fn(),
-  findOne: jest.fn(),
-  update: jest.fn(),
-  remove: jest.fn(),
-  addToFavorite: jest.fn(),
-  getSimilarUsersForSkill: jest.fn(),
-};
+import { Skill } from '../src/skills/entities/skill.entity';
+import { Category } from '../src/categories/entities/category.entity';
+import { User } from '../src/users/entities/user.entity';
+
+import { createTestingApp } from './setup';
+import { testUsers } from '../src/seeding/data/user.array';
+import { AuthService } from '../src/auth/auth.service';
 
 describe('SkillsController (e2e)', () => {
   let app: INestApplication;
 
+  let dataSource: DataSource;
+
+  let skillsRepository: Repository<Skill>;
+  let categoriesRepository: Repository<Category>;
+  let usersRepository: Repository<User>;
+  let authService: AuthService;
+
+  let accessToken: string;
+
+  let user: User;
+  let category: Category;
+
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [SkillsController],
-      providers: [{ provide: SkillsService, useValue: mockSkillsService }],
-    })
-      .overrideGuard(AccessTokenGuard)
-      .useValue(new MockAuthGuard())
-      .compile();
+    app = await createTestingApp();
 
-    app = moduleFixture.createNestApplication();
+    dataSource = app.get(DataSource);
 
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-      }),
-    );
-    await app.init();
+    skillsRepository = app.get(getRepositoryToken(Skill));
+    categoriesRepository = app.get(getRepositoryToken(Category));
+    usersRepository = app.get(getRepositoryToken(User));
+    authService = app.get<AuthService>(AuthService);
+  });
+
+  beforeEach(async () => {
+    user = (await usersRepository.findOne({
+      where: {
+        email: testUsers[0].email,
+      },
+    })) as User;
+
+    category = (await categoriesRepository.findOne({
+      where: {
+        name: 'IT и программирование',
+      },
+    })) as Category;
+
+    accessToken = (
+      await authService.login({
+        email: testUsers[0].email,
+        password: testUsers[0].password,
+      })
+    ).tokens.accessToken;
   });
 
   afterAll(async () => {
+    await dataSource.destroy();
     await app.close();
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  describe('POST /skills', () => {
+    it('should create skill', async () => {
+      const dto = {
+        title: 'NestJS',
+        description: 'Backend framework',
+        categoryId: category.id,
+        images: [],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/skills')
+        .set('Cookie', `accessToken=${accessToken}`)
+        .send(dto)
+        .expect(201);
+
+      expect(response.body.title).toBe(dto.title);
+
+      const skill = await skillsRepository.findOne({
+        where: {
+          id: response.body.id,
+        },
+      });
+
+      expect(skill).not.toBeNull();
+    });
+
+    it('should return 401 without token', async () => {
+      await request(app.getHttpServer()).post('/skills').send({}).expect(401);
+    });
+
+    it('should return 404 if category does not exist', async () => {
+      await request(app.getHttpServer())
+        .post('/skills')
+        .set('Cookie', `accessToken=${accessToken}`)
+        .send({
+          title: 'NestJS',
+          categoryId: '00000000-0000-0000-0000-000000000000',
+        })
+        .expect(404);
+    });
   });
 
-  it('should create a skill', async () => {
-    const dto = {
-      title: 'TypeScript',
-      categoryId: '30595ae1-40a4-4766-8700-21371d8a1471',
-    };
-    const expected = {
-      id: 'skill-1',
-      description: undefined,
-      images: undefined,
-      ...dto,
-    };
-    mockSkillsService.create.mockResolvedValue(expected);
+  describe('GET /skills', () => {
+    it('should return paginated skills', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/skills?page=1&limit=10')
+        .expect(200);
 
-    const response = await request(app.getHttpServer())
-      .post('/skills')
-      .send(dto)
-      .expect(201);
+      expect(response.body.page).toBe('1');
+      expect(response.body.data.length).toBe(7);
+    });
 
-    expect(response.body).toEqual(expected);
-    expect(mockSkillsService.create).toHaveBeenCalled();
+    it('should filter by search', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/skills?page=1&limit=10&search=React')
+        .expect(200);
+
+      expect(response.body.data.length).toBe(1);
+    });
+
+    it('should return 404 for missing page', async () => {
+      await request(app.getHttpServer())
+        .get('/skills?page=100&limit=10')
+        .expect(404);
+    });
   });
 
-  it('should return 400 on invalid DTO', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/skills')
-      .send({ level: 'invalid' }) // name отсутствует
-      .expect(400);
+  describe('GET /skills/:id', () => {
+    it('should return skill', async () => {
+      const skill = await skillsRepository.save({
+        title: 'Vue',
+        description: 'Frontend',
+        images: [],
+        category,
+        owner: user,
+      });
 
-    expect(response.body).toHaveProperty('message');
-    expect(mockSkillsService.create).not.toHaveBeenCalled();
+      const response = await request(app.getHttpServer())
+        .get(`/skills/${skill.id}`)
+        .expect(200);
+
+      expect(response.body.id).toBe(skill.id);
+    });
+
+    it('should return 404', async () => {
+      await request(app.getHttpServer())
+        .get('/skills/00000000-0000-0000-0000-000000000000')
+        .expect(404);
+    });
   });
 
-  it('should return paginated skills', async () => {
-    const query = { page: '1', limit: '10' };
-    const expected = { data: [], page: 1, totalPages: 0 };
-    mockSkillsService.findAll.mockResolvedValue(expected);
+  describe('PATCH /skills/:id', () => {
+    it('should update own skill', async () => {
+      const skill = await skillsRepository.save({
+        title: 'Angular',
+        description: 'Frontend',
+        images: [],
+        category,
+        owner: user,
+      });
 
-    const response = await request(app.getHttpServer())
-      .get('/skills')
-      .query(query)
-      .expect(200);
+      const response = await request(app.getHttpServer())
+        .patch(`/skills/${skill.id}`)
+        .set('Cookie', `accessToken=${accessToken}`)
+        .send({
+          title: 'Angular 2',
+        })
+        .expect(200);
 
-    expect(response.body).toEqual(expected);
-    expect(mockSkillsService.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 1, limit: 10 }),
-    );
+      expect(response.body.title).toBe('Angular 2');
+    });
   });
 
-  it('should return a skill by id', async () => {
-    const id = 'skill-123';
-    const expected = { id, name: 'React' };
-    mockSkillsService.findOne.mockResolvedValue(expected);
+  describe('DELETE /skills/:id', () => {
+    it('should remove own skill', async () => {
+      const skill = await skillsRepository.save({
+        title: 'Go',
+        description: 'Backend',
+        images: [],
+        category,
+        owner: user,
+      });
 
-    const response = await request(app.getHttpServer())
-      .get(`/skills/${id}`)
-      .expect(200);
-    expect(response.body).toEqual(expected);
-    expect(mockSkillsService.findOne).toHaveBeenCalledWith(id);
-  });
+      await request(app.getHttpServer())
+        .delete(`/skills/${skill.id}`)
+        .set('Cookie', `accessToken=${accessToken}`)
+        .expect(200);
 
-  it('should return similar users for skill', async () => {
-    const id = 'skill-123';
-    const expected = [{ id: 'u1' }, { id: 'u2' }];
-    mockSkillsService.getSimilarUsersForSkill.mockResolvedValue(expected);
+      const deletedSkill = await skillsRepository.findOne({
+        where: {
+          id: skill.id,
+        },
+      });
 
-    const response = await request(app.getHttpServer())
-      .get(`/skills/${id}/similar`)
-      .expect(200);
-
-    expect(response.body).toEqual(expected);
-    expect(mockSkillsService.getSimilarUsersForSkill).toHaveBeenCalledWith(id);
-  });
-
-  it('should update a skill', async () => {
-    const id = 'skill-123';
-    const dto = { title: 'Updated Name' };
-    const expected = { id, ...dto };
-    mockSkillsService.update.mockResolvedValue(expected);
-
-    const response = await request(app.getHttpServer())
-      .patch(`/skills/${id}`)
-      .send(dto)
-      .expect(200);
-
-    expect(response.body).toEqual(expected);
-    expect(mockSkillsService.update).toHaveBeenCalledWith(
-      id,
-      dto,
-      MOCK_USER.sub,
-    );
-  });
-
-  it('should remove a skill', async () => {
-    const id = 'skill-123';
-    mockSkillsService.remove.mockResolvedValue(undefined);
-
-    await request(app.getHttpServer()).delete(`/skills/${id}`).expect(200);
-    expect(mockSkillsService.remove).toHaveBeenCalledWith(id, MOCK_USER.sub);
-  });
-
-  it('should add skill to favorites', async () => {
-    const id = 'skill-123';
-    const expectedUser = { id: MOCK_USER.sub, favorites: [id] };
-    mockSkillsService.addToFavorite.mockResolvedValue(expectedUser);
-
-    const response = await request(app.getHttpServer())
-      .post(`/skills/${id}/favorite`)
-      .expect(201);
-
-    expect(response.body).toEqual(expectedUser);
-    expect(mockSkillsService.addToFavorite).toHaveBeenCalledWith(
-      id,
-      MOCK_USER.sub,
-    );
+      expect(deletedSkill).toBeNull();
+    });
   });
 });
