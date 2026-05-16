@@ -32,8 +32,14 @@ export class CitiesService {
     );
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} city`;
+  async findOne(id: number) {
+    const city = await this.cityRepository.findOneBy({ id });
+
+    if (!city) {
+      throw new NotFoundException('City not found');
+    }
+
+    return city;
   }
 
   async update(id: number, updateCityDto: UpdateCityDto) {
@@ -48,7 +54,13 @@ export class CitiesService {
     return this.cityRepository.save(city);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} city`;
+  async remove(id: number) {
+    const city = await this.cityRepository.findOneBy({ id });
+
+    if (!city) {
+      throw new NotFoundException('City not found');
+    }
+
+    await this.cityRepository.remove(city);
   }
 }
