@@ -19,25 +19,35 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/enums/users.enums';
+import {
+  ApiCreateCity,
+  ApiDeleteCity,
+  ApiFindAllCities,
+  ApiFindOneCity,
+  ApiUpdateCity,
+} from './swagger/cities.swagger';
 
 @Controller('cities')
 export class CitiesController {
   constructor(private readonly citiesService: CitiesService) {}
 
-  @Post()
+@Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiCreateCity()
   create(@Body() createCityDto: CreateCityDto) {
     return this.citiesService.create(createCityDto);
   }
 
   @Get()
+  @ApiFindAllCities()
   findAll(@Query() query: GetCitiesQueryDto) {
     return this.citiesService.findAll(query);
   }
 
   @Get(':id')
+  @ApiFindOneCity()
   findOne(@Param('id') id: number) {
     return this.citiesService.findOne(id);
   }
@@ -45,11 +55,13 @@ export class CitiesController {
   @Patch(':id')
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiUpdateCity()
   update(@Param('id') id: number, @Body() updateCityDto: UpdateCityDto) {
     return this.citiesService.update(id, updateCityDto);
   }
 
   @Delete(':id')
+  @ApiDeleteCity()
   remove(@Param('id') id: number) {
     return this.citiesService.remove(id);
   }
