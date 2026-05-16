@@ -3,6 +3,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiBadRequestResponse
 } from '@nestjs/swagger';
 
 export const ApiFindAllUsers = () =>
@@ -26,9 +27,10 @@ export const ApiGetUserById = () =>
 
 export const ApiUpdateUser = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Update current user' }),
+    ApiOperation({ summary: 'Update current user', description: 'Can pass the cityId field to update the city.'  }),
     ApiOkResponse({ description: 'The user has been successfully updated.' }),
     ApiNotFoundResponse({ description: 'User not found.' }),
+    ApiBadRequestResponse({ description: 'City not found'}),
   );
 
 export const ApiDeleteUser = () =>

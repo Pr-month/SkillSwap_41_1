@@ -112,8 +112,16 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    const { cityId, ...rest } = dto;
+    Object.assign(user, rest);
 
-    Object.assign(user, dto);
+    if (cityId) {
+      const city = await this.cityRepo.findOne({ where: { id: cityId } });
+      if (!city) {
+        throw new BadRequestException('City not found');
+      }
+      user.city = city;
+    }
 
     return this.userRepo.save(user);
   }
