@@ -1,15 +1,25 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { City } from '../cities/entities/city.entity';
+import { Category } from '../categories/entities/category.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 type MockUserRepository = {
   find: jest.Mock;
   findOne: jest.Mock;
   save: jest.Mock;
+};
+
+type MockCityRepository = {
+  findOne: jest.Mock;
+};
+
+type MockCategoryRepository = {
+  findBy: jest.Mock;
 };
 
 const createMockRepository = (): MockUserRepository => ({
@@ -21,6 +31,7 @@ const createMockRepository = (): MockUserRepository => ({
 describe('UsersService', () => {
   let service: UsersService;
   let userRepo: MockUserRepository;
+  let cityRepo: MockCityRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,11 +41,20 @@ describe('UsersService', () => {
           provide: getRepositoryToken(User),
           useValue: createMockRepository(),
         },
+        {
+          provide: getRepositoryToken(City),
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(Category),
+          useValue: { findBy: jest.fn() },
+        },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
     userRepo = module.get<MockUserRepository>(getRepositoryToken(User));
+    cityRepo = module.get<MockCityRepository>(getRepositoryToken(City));
   });
 
   afterEach(() => {
@@ -137,23 +157,29 @@ describe('UsersService', () => {
         refreshToken: null,
       } as User;
 
+      const mockCity = {
+        id: 1, name: 'Almaty'
+      }
+
       const dto = {
         name: 'Anna',
         about: 'Backend developer',
         birthdate: '1998-05-10',
-        city: 'Almaty',
+        cityId: 1,
         avatar: 'avatar.png',
       } as UpdateUserDto;
 
       const savedUser = {
         ...user,
         ...dto,
-      } as unknown as User;
+        city: mockCity,
+      } as User;
 
       const findByIdSpy = jest
         .spyOn(service, 'findById')
         .mockResolvedValue(user);
 
+      cityRepo.findOne.mockResolvedValue(mockCity)
       userRepo.save.mockResolvedValue(savedUser);
 
       const result = await service.updateMe('1', dto);
@@ -167,7 +193,7 @@ describe('UsersService', () => {
           email: 'old@mail.com',
           about: 'Backend developer',
           birthdate: '1998-05-10',
-          city: 'Almaty',
+          city: mockCity,
           avatar: 'avatar.png',
         }),
       );
@@ -184,6 +210,20 @@ describe('UsersService', () => {
 
       await expect(service.updateMe('wrong-id', dto)).rejects.toThrow(
         NotFoundException,
+      );
+
+      expect(userRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if city not found', async () => {
+      const user = { id: '1' } as User;
+      const dto = { cityId: 999 } as UpdateUserDto;
+
+      cityRepo.findOne.mockResolvedValue(null)
+      jest.spyOn(service, 'findById').mockResolvedValue(user);
+
+      await expect(service.updateMe('1', dto)).rejects.toThrow(
+        BadRequestException,
       );
 
       expect(userRepo.save).not.toHaveBeenCalled();
