@@ -1,0 +1,24 @@
+import { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+import { AppModule } from '../src/app.module';
+import cookieParser from 'cookie-parser';
+
+export async function createTestingApp(): Promise<INestApplication> {
+  const envPath = path.join(__dirname, '../.env.test.local');
+  dotenv.config({ path: envPath, override: true });
+
+  const moduleRef = await Test.createTestingModule({
+    imports: [AppModule],
+  }).compile();
+
+  const app = moduleRef.createNestApplication();
+
+  app.use(cookieParser());
+
+  await app.init();
+
+  return app;
+}
