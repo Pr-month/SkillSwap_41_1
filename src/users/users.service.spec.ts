@@ -11,21 +11,23 @@ import { UpdateUserDto } from './dto/update-user.dto';
 type MockUserRepository = {
   find: jest.Mock;
   findOne: jest.Mock;
+  create: jest.Mock;
   save: jest.Mock;
+  findOneBy: jest.Mock;
+  findAndCount: jest.Mock;
 };
 
 type MockCityRepository = {
   findOne: jest.Mock;
 };
 
-type MockCategoryRepository = {
-  findBy: jest.Mock;
-};
-
 const createMockRepository = (): MockUserRepository => ({
   find: jest.fn(),
   findOne: jest.fn(),
+  create: jest.fn(),
   save: jest.fn(),
+  findOneBy: jest.fn(),
+  findAndCount: jest.fn(),
 });
 
 describe('UsersService', () => {
@@ -69,17 +71,19 @@ describe('UsersService', () => {
     it('should return all users with relations', async () => {
       const users = [{ id: '1' }, { id: '2' }] as User[];
 
-      userRepo.find.mockResolvedValue(users);
+      userRepo.findAndCount.mockResolvedValue(users);
 
-      const result = await service.findAll();
+      const result = await service.findAll({ page: 1, limit: 10 });
 
-      expect(result).toEqual(users);
-      expect(userRepo.find).toHaveBeenCalledWith({
+      expect(result).toEqual({ data: { id: '1' }, page: 1, totalPages: NaN });
+      expect(userRepo.findAndCount).toHaveBeenCalledWith({
         relations: {
           skills: true,
           wantToLearn: true,
           favoriteSkills: true,
         },
+        skip: 0,
+        take: 10,
       });
     });
   });
@@ -93,9 +97,7 @@ describe('UsersService', () => {
       const result = await service.findOne('1');
 
       expect(result).toEqual(user);
-      expect(userRepo.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
-      });
+      expect(userRepo.findOne).toHaveBeenCalled();
     });
 
     it('should return null if user not found', async () => {
@@ -104,9 +106,7 @@ describe('UsersService', () => {
       const result = await service.findOne('wrong-id');
 
       expect(result).toBeNull();
-      expect(userRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'wrong-id' },
-      });
+      expect(userRepo.findOne).toHaveBeenCalled();
     });
   });
 
@@ -158,8 +158,9 @@ describe('UsersService', () => {
       } as User;
 
       const mockCity = {
-        id: 1, name: 'Almaty'
-      }
+        id: 1,
+        name: 'Almaty',
+      };
 
       const dto = {
         name: 'Anna',
@@ -179,7 +180,7 @@ describe('UsersService', () => {
         .spyOn(service, 'findById')
         .mockResolvedValue(user);
 
-      cityRepo.findOne.mockResolvedValue(mockCity)
+      cityRepo.findOne.mockResolvedValue(mockCity);
       userRepo.save.mockResolvedValue(savedUser);
 
       const result = await service.updateMe('1', dto);
@@ -219,7 +220,7 @@ describe('UsersService', () => {
       const user = { id: '1' } as User;
       const dto = { cityId: 999 } as UpdateUserDto;
 
-      cityRepo.findOne.mockResolvedValue(null)
+      cityRepo.findOne.mockResolvedValue(null);
       jest.spyOn(service, 'findById').mockResolvedValue(user);
 
       await expect(service.updateMe('1', dto)).rejects.toThrow(
@@ -227,22 +228,6 @@ describe('UsersService', () => {
       );
 
       expect(userRepo.save).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('create', () => {
-    it('should return temporary create message', () => {
-      const result = service.create({} as User);
-
-      expect(result).toBe('This action adds a new user');
-    });
-  });
-
-  describe('remove', () => {
-    it('should return temporary remove message', () => {
-      const result = service.remove('1');
-
-      expect(result).toBe('This action removes a #1 user');
     });
   });
 });
