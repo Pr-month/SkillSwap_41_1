@@ -12,6 +12,7 @@ describe('CitiesService', () => {
     save: jest.fn(),
     find: jest.fn(),
     findOneBy: jest.fn(),
+    remove: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -32,6 +33,24 @@ describe('CitiesService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should create a new city', async () => {
+    cityRepositoryMock.save.mockResolvedValue({ id: 1, name: 'Berlin' });
+
+    const result = await service.create({ name: 'Berlin' });
+
+    expect(cityRepositoryMock.save).toHaveBeenCalled();
+    expect(result).toEqual({ id: 1, name: 'Berlin' });
+  });
+
+  it('should find one city', async () => {
+    cityRepositoryMock.findOneBy.mockResolvedValue({ id: 1, name: 'Berlin' });
+
+    const result = await service.findOne(1);
+
+    expect(cityRepositoryMock.findOneBy).toHaveBeenCalledWith({ id: 1 });
+    expect(result).toEqual({ id: 1, name: 'Berlin' });
   });
 
   it('returns cities sorted by name without search', async () => {
@@ -78,5 +97,16 @@ describe('CitiesService', () => {
     await expect(service.update(1, { name: 'Lyon' })).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('deletes a city', async () => {
+    cityRepositoryMock.findOneBy.mockResolvedValue({ id: 1, name: 'Lyon' });
+
+    await service.remove(1);
+
+    expect(cityRepositoryMock.remove).toHaveBeenCalledWith({
+      id: 1,
+      name: 'Lyon',
+    });
   });
 });
