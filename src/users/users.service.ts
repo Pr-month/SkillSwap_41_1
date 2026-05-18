@@ -126,4 +126,48 @@ export class UsersService {
 
     await this.userRepo.remove(user);
   }
+
+  async createCategory(userId: string, categoryId: string): Promise<User> {
+    const user = await this.findById(userId);
+    const category = await this.categoryRepo.findOneBy({ id: categoryId });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const categoryIsExist = user.wantToLearn?.some((i) => i.id === categoryId);
+
+    if (categoryIsExist) {
+      throw new ConflictException('Category already exists for this user');
+    }
+
+    user.wantToLearn = [...(user.wantToLearn || []), category];
+    return this.userRepo.save(user);
+  }
+
+  async removeCategory(userId: string, categoryId: string) {
+    const user = await this.findById(userId);
+    const category = await this.categoryRepo.findOneBy({ id: categoryId });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+    user.wantToLearn = user.wantToLearn.filter((i) => i.id !== categoryId);
+    return this.userRepo.save(user);
+  }
+
+  async findAllCategories(userId: string): Promise<Category[]> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user.wantToLearn;
+  }
 }

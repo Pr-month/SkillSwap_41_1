@@ -29,6 +29,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from './entities/enums/users.enums';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { User } from './entities/user.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @ApiTags('users')
 @Controller('users')
@@ -76,22 +77,26 @@ export class UsersController {
   // categories
   @UseGuards(AccessTokenGuard)
   @Get('me/want-to-learn')
-  @ApiGetUser()
-  findAllCategories(@Req() req: IRequestWithUser): Promise<User | null> {
-    return this.usersService.findById(req.user.sub);
+  findAllCategories(@Req() req: IRequestWithUser): Promise<Category[] | null> {
+    return this.usersService.findAllCategories(req.user.sub);
   }
 
   @UseGuards(AccessTokenGuard)
   @Post('me/want-to-learn/:categoryId')
-  @ApiGetUser()
-  createCategory(@Req() req: IRequestWithUser): Promise<User | null> {
-    return this.usersService.findById(req.user.sub);
+  createCategory(
+    @Req() req: IRequestWithUser,
+    @Param('categoryId') categoryId: string,
+  ): Promise<User | null> {
+    return this.usersService.createCategory(req.user.sub, categoryId);
   }
 
   @UseGuards(AccessTokenGuard)
   @Delete('me/want-to-learn/:categoryId')
-  @ApiGetUser()
-  removeCategory(@Req() req: IRequestWithUser): Promise<User | null> {
-    return this.usersService.findById(req.user.sub);
+  // @ApiDeleteCategory() нужен будет свагер
+  async removeCategory(
+    @Req() req: IRequestWithUser,
+    @Param('categoryId') categoryId: string,
+  ) {
+    await this.usersService.removeCategory(req.user.sub, categoryId);
   }
 }
