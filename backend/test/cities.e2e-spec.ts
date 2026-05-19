@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { App } from 'supertest/types';
 import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from '../src/auth/auth.service';
@@ -10,7 +11,7 @@ import { testUsers } from '../src/seeding/data/user.array';
 import { City } from '../src/cities/entities/city.entity';
 
 describe('CitiesController (e2e)', () => {
-  let app: INestApplication;
+  let app: INestApplication<App>;
   let dataSource: DataSource;
   let citiesRepository: Repository<City>;
   let authService: AuthService;
@@ -19,7 +20,7 @@ describe('CitiesController (e2e)', () => {
   let city: City;
 
   beforeAll(async () => {
-    app = await createTestingApp();
+    app = (await createTestingApp()) as INestApplication<App>;
 
     dataSource = app.get(DataSource);
 
@@ -121,13 +122,13 @@ describe('CitiesController (e2e)', () => {
     it('should return cities by search', async () => {
       const response = await request(app.getHttpServer())
         .get(`/cities`)
-        .query({ search: 'Москва'})
+        .query({ search: 'Москва' })
         .expect(200);
 
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(
-        response.body.some((item: City) => item.name === 'Москва'),
-      ).toBe(true);
+      const cities = response.body as City[];
+
+      expect(Array.isArray(cities)).toBe(true);
+      expect(cities.some((item) => item.name === 'Москва')).toBe(true);
     });
   });
 
