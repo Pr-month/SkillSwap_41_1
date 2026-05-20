@@ -49,6 +49,15 @@ export const loginUserApi = async (data: LoginData) => {
   return checkedRes;
 };
 
+export const logoutUserApi = async () => {
+  const res = await fetch(`/api/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  const checkedRes = await checkResponse(res);
+  return checkedRes;
+}
+
 // Добавляем тип для обновления профиля
 export type TUpdateProfileData = {
   name: string;
