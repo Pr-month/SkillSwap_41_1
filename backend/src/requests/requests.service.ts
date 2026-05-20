@@ -97,14 +97,6 @@ export class RequestsService {
     });
   }
 
-  findAll() {
-    return 'This action returns all requests';
-  }
-
-  findOne(id: string) {
-    return `This action returns a #${id} request`;
-  }
-
   async update(
     id: string,
     updateRequestDto: UpdateRequestDto,
