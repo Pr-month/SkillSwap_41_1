@@ -1,8 +1,10 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { AUTH_USER_SLICE } from '../slices/slicesName';
-import { TAuthResponse, TLoginData, TUserResponse } from '@/shared/utils/api';
-import { getUserApi, loginUserApi, logoutApi } from '@/shared/mocks/authMock';
-import { deleteCookie, setCookie } from '@/shared/utils/cookies';
+import { TLoginData, TUserResponse } from '@/shared/utils/api';
+import { getUserApi, logoutApi } from '@/shared/mocks/authMock';
+import { deleteCookie } from '@/shared/utils/cookies';
+import { loginUserApi } from '@/api/skillSwapApi';
+import { User } from '@/entities/user/model/types';
 
 export const fetchUser = createAsyncThunk<TUserResponse, void>(
   `${AUTH_USER_SLICE}/fetchUser`,
@@ -16,16 +18,14 @@ export const fetchUser = createAsyncThunk<TUserResponse, void>(
   },
 );
 
-export const loginUser = createAsyncThunk<TAuthResponse, TLoginData>(
+export const loginUser = createAsyncThunk<User, TLoginData, { rejectValue: string }>(
   `${AUTH_USER_SLICE}/loginUser`,
   async (dataUser, { rejectWithValue }) => {
     try {
       const data = await loginUserApi(dataUser);
-      setCookie('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
       return data;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue(error as string);
     }
   },
 );

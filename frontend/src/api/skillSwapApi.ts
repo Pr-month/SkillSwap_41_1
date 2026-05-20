@@ -18,7 +18,6 @@ const assertSuccess = <T>(response: { success: boolean; data: T }, errorText: st
 type SkillResponse = ServerResponse<Skill[]>;
 
 type UsersResponse = ServerResponse<User[]>;
-type AuthResponse = ServerResponse<{ accessToken: string; refreshToken: string }>;
 
 export const getSkillsApi = async () => {
   const res = await fetch(`/api/skills`);
@@ -40,13 +39,14 @@ export type LoginData = {
 export const loginUserApi = async (data: LoginData) => {
   const res = await fetch(`/api/login`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
     },
     body: JSON.stringify(data),
   });
-  const checkedRes = await checkResponse<AuthResponse>(res);
-  return assertSuccess(checkedRes, 'Не удалось залогиниться');
+  const checkedRes = await checkResponse<User>(res);
+  return checkedRes;
 };
 
 // Добавляем тип для обновления профиля
