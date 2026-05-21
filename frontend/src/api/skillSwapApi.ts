@@ -22,13 +22,18 @@ type SkillResponse = {
 
 type UsersResponse = ServerResponse<User[]>;
 
-export const getSkillsApi = async (page?: number, limit?: number, search?: string, category?: string) => {
+export const getSkillsApi = async (
+  page?: number,
+  limit?: number,
+  search?: string,
+  category?: string,
+) => {
   const params = new URLSearchParams();
-  params.set('page', page ? String(page) : '');
-  params.set('limit', limit ? String(limit) : '');
-  params.set('search', search ? search : '');
-  params.set('category', category ? category : '');
-  const res = await fetch(`/skills?${params.toString()}`);
+  if (page) params.append('page', page.toString());
+  if (limit) params.append('limit', limit.toString());
+  if (search) params.append('search', search);
+  if (category) params.append('category', category);
+  const res = await fetch(`${URL}/skills?${params.toString()}`);
   const checkedRes = await checkResponse<SkillResponse>(res);
   return checkedRes;
 };
@@ -45,7 +50,7 @@ export type LoginData = {
 };
 
 export const loginUserApi = async (data: LoginData) => {
-  const res = await fetch(`/auth/login`, {
+  const res = await fetch(`${URL}/auth/login`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -58,13 +63,13 @@ export const loginUserApi = async (data: LoginData) => {
 };
 
 export const logoutUserApi = async () => {
-  const res = await fetch(`/auth/logout`, {
+  const res = await fetch(`${URL}/auth/logout`, {
     method: 'POST',
     credentials: 'include',
   });
   const checkedRes = await checkResponse(res);
   return checkedRes;
-}
+};
 
 // Добавляем тип для обновления профиля
 export type TUpdateProfileData = {
