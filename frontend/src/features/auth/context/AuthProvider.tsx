@@ -43,8 +43,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('auth');
     setAuthState({ isAuthenticated: false, user: null });
     navigate('/');
-    localStorage.removeItem('registrationData');
-    localStorage.removeItem('refreshToken');
   };
 
   useEffect(() => {

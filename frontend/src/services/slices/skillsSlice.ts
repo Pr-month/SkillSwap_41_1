@@ -14,7 +14,7 @@ const initialState: SkillsState = {
   error: undefined,
 };
 // СТАЛО
-export const getSkills = createAsyncThunk<Skill[]>('skills/getAll', async () => getSkillsApi());
+export const getSkills = createAsyncThunk<Skill[]>('skills/getAll', async () => (await getSkillsApi()).data);
 
 const skillsSlice = createSlice({
   name: 'skills',
