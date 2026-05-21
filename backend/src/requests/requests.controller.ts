@@ -1,6 +1,5 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Patch,
@@ -10,6 +9,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Get,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -19,10 +19,8 @@ import { IRequestWithUser } from '../auth/auth.types';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ApiCreateRequest,
-  ApiGetAllRequests,
   ApiGetOutgoingRequests,
   ApiGetIncomingRequests,
-  ApiGetRequestById,
   ApiUpdateRequest,
   ApiDeleteRequest,
 } from './swagger/requests.swagger';
@@ -42,12 +40,6 @@ export class RequestsController {
     return this.requestsService.create(createRequestDto, req.user.sub);
   }
 
-  @Get()
-  @ApiGetAllRequests()
-  findAll() {
-    return this.requestsService.findAll();
-  }
-
   @UseGuards(AccessTokenGuard)
   @Get('outgoing')
   @ApiGetOutgoingRequests()
@@ -60,12 +52,6 @@ export class RequestsController {
   @ApiGetIncomingRequests()
   getIncoming(@Req() req: IRequestWithUser) {
     return this.requestsService.findIncoming(req.user.sub);
-  }
-
-  @Get(':id')
-  @ApiGetRequestById()
-  findOne(@Param('id') id: string) {
-    return this.requestsService.findOne(id);
   }
 
   @UseGuards(AccessTokenGuard)
@@ -85,6 +71,5 @@ export class RequestsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: IRequestWithUser) {
     await this.requestsService.remove(id, req);
-    return { message: 'Заявка успешно удалена' };
   }
 }

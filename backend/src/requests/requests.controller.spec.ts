@@ -6,9 +6,8 @@ describe('RequestsController', () => {
   let controller: RequestsController;
   const requestsServiceMock = {
     create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
     update: jest.fn(),
+    findIncoming: jest.fn(),
     findOutgoing: jest.fn(),
     remove: jest.fn(),
   };
