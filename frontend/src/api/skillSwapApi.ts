@@ -3,9 +3,8 @@ import { User } from '@/entities/user/model/types';
 import { TServerResponse } from '@/shared/utils/api';
 import { getCookie } from '@/shared/utils/cookies';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';  
+const API_BASE_URL = import.meta.env.VITE_SKILLSWAP_API_URL || '';
 const URL = API_BASE_URL ? `${API_BASE_URL}` : '';
-
 
 const checkResponse = <T>(res: Response): Promise<T> =>
   res.ok ? res.json() : res.json().then(err => Promise.reject(err));
@@ -21,13 +20,13 @@ type UsersResponse = ServerResponse<User[]>;
 type AuthResponse = ServerResponse<{ accessToken: string; refreshToken: string }>;
 
 export const getSkillsApi = async () => {
-  const res = await fetch(`/api/skills`);
+  const res = await fetch(`/skills`);
   const checkedRes = await checkResponse<SkillResponse>(res);
   return assertSuccess(checkedRes, 'Не удалось получить навыки');
 };
 
 export const getUsersApi = async () => {
-  const res = await fetch(`/api/users/all`);
+  const res = await fetch(`/users`);
   const checkedRes = await checkResponse<UsersResponse>(res);
   return assertSuccess(checkedRes, 'Не удалось получить данные о пользователях');
 };
@@ -38,7 +37,7 @@ export type LoginData = {
 };
 
 export const loginUserApi = async (data: LoginData) => {
-  const res = await fetch(`/api/login`, {
+  const res = await fetch(`/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
@@ -65,7 +64,7 @@ export type TUpdateProfileResponse = TServerResponse<{
 
 // Добавляем метод для обновления профиля
 export const updateProfileApi = (data: TUpdateProfileData): Promise<TUpdateProfileResponse> => {
-  return fetch(`${URL}/api/profile`, {
+  return fetch(`${URL}/users/me`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
