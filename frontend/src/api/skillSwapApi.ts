@@ -15,14 +15,23 @@ const assertSuccess = <T>(response: { success: boolean; data: T }, errorText: st
   return response.data;
 };
 
-type SkillResponse = ServerResponse<Skill[]>;
+type SkillResponse = {
+  data: Skill[];
+  page: number;
+  totalPages: number;
+};
 
 type UsersResponse = ServerResponse<User[]>;
 
-export const getSkillsApi = async () => {
-  const res = await fetch(`/api/skills`);
+export const getSkillsApi = async (page?: number, limit?: number, search?: string, category?: string) => {
+  const params = new URLSearchParams();
+  params.set('page', page ? String(page) : '');
+  params.set('limit', limit ? String(limit) : '');
+  params.set('search', search ? search : '');
+  params.set('category', category ? category : '');
+  const res = await fetch(`/skills?${params.toString()}`);
   const checkedRes = await checkResponse<SkillResponse>(res);
-  return assertSuccess(checkedRes, 'Не удалось получить навыки');
+  return checkedRes;
 };
 
 export const getUsersApi = async () => {
@@ -37,7 +46,7 @@ export type LoginData = {
 };
 
 export const loginUserApi = async (data: LoginData) => {
-  const res = await fetch(`/api/login`, {
+  const res = await fetch(`/auth/login`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -50,7 +59,7 @@ export const loginUserApi = async (data: LoginData) => {
 };
 
 export const logoutUserApi = async () => {
-  const res = await fetch(`/api/logout`, {
+  const res = await fetch(`/auth/logout`, {
     method: 'POST',
     credentials: 'include',
   });
