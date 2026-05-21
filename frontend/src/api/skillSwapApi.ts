@@ -71,6 +71,15 @@ export const logoutUserApi = async () => {
   return checkedRes;
 };
 
+export const getUserApi = async () => {
+  const res = await fetch(`${URL}/users/me`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  const checkedRes = await checkResponse<User>(res);
+  return checkedRes;
+};
+
 // Добавляем тип для обновления профиля
 export type TUpdateProfileData = {
   name: string;
