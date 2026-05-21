@@ -3,9 +3,8 @@ import { User } from '@/entities/user/model/types';
 import { TServerResponse } from '@/shared/utils/api';
 import { getCookie } from '@/shared/utils/cookies';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';  
+const API_BASE_URL = import.meta.env.VITE_SKILLSWAP_API_URL || '';
 const URL = API_BASE_URL ? `${API_BASE_URL}` : '';
-
 
 const checkResponse = <T>(res: Response): Promise<T> =>
   res.ok ? res.json() : res.json().then(err => Promise.reject(err));
@@ -35,7 +34,7 @@ export const getSkillsApi = async (page?: number, limit?: number, search?: strin
 };
 
 export const getUsersApi = async () => {
-  const res = await fetch(`/api/users/all`);
+  const res = await fetch(`/users`);
   const checkedRes = await checkResponse<UsersResponse>(res);
   return assertSuccess(checkedRes, 'Не удалось получить данные о пользователях');
 };
@@ -83,7 +82,7 @@ export type TUpdateProfileResponse = TServerResponse<{
 
 // Добавляем метод для обновления профиля
 export const updateProfileApi = (data: TUpdateProfileData): Promise<TUpdateProfileResponse> => {
-  return fetch(`${URL}/api/profile`, {
+  return fetch(`${URL}/users/me`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
