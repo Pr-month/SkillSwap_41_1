@@ -3,6 +3,8 @@ import { dbConfig } from '../config/db.config';
 import { seedAdmin } from './admin.seeder';
 import { seedCategories } from './categories.seeder';
 import { seedCities } from './cities.seeder';
+import { config } from 'dotenv';
+config({ path: '.env' });
 
 async function runProdSeeder() {
   console.log('Starting PROD database seeding');

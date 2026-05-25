@@ -5,6 +5,8 @@ import { seedCities } from './cities.seeder';
 import { seedAdmin } from './admin.seeder';
 import { seedUsers } from './user.seeder';
 import { seedSkills } from './skills.seeder';
+import { config } from 'dotenv';
+config({ path: '.env.test.local' });
 
 async function runTestSeeder() {
   console.log('Run test seeding...');
@@ -15,9 +17,6 @@ async function runTestSeeder() {
   try {
     await dataSource.initialize();
     console.log('Database connected.');
-
-    await dataSource.synchronize(true);
-    console.log('Database cleared & synchronized.');
 
     await seedCategories(dataSource);
     console.log('Categories seeded.');
