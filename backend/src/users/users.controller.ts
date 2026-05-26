@@ -17,7 +17,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  ApiCreateUserCategory,
   ApiDeleteUser,
+  ApiDeleteUserCategory,
+  ApiFindAllUserCategories,
   ApiFindAllUsers,
   ApiGetUser,
   ApiGetUserById,
@@ -79,12 +82,14 @@ export class UsersController {
   // categories
   @UseGuards(AccessTokenGuard)
   @Get('me/want-to-learn')
+  @ApiFindAllUserCategories()
   findAllCategories(@Req() req: IRequestWithUser): Promise<Category[] | null> {
     return this.usersService.findAllCategories(req.user.sub);
   }
 
   @UseGuards(AccessTokenGuard)
   @Post('me/want-to-learn/:categoryId')
+  @ApiCreateUserCategory()
   createCategory(
     @Req() req: IRequestWithUser,
     @Param('categoryId') categoryId: string,
@@ -94,7 +99,7 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Delete('me/want-to-learn/:categoryId')
-  // @ApiDeleteCategory() нужен будет свагер
+  @ApiDeleteUserCategory()
   async removeCategory(
     @Req() req: IRequestWithUser,
     @Param('categoryId') categoryId: string,
