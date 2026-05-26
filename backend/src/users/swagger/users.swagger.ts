@@ -42,3 +42,11 @@ export const ApiDeleteUser = () =>
     ApiOkResponse({ description: 'The user has been successfully deleted.' }),
     ApiNotFoundResponse({ description: 'User not found.' }),
   );
+
+export const ApiUpdatePassword = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Update password' }),
+    ApiOkResponse({ description: 'Password successfully updated' }),
+    ApiBadRequestResponse({ description: 'Invalid password' }),
+    ApiNotFoundResponse({ description: 'User not found' }),
+  );

@@ -21,6 +21,7 @@ import {
   ApiFindAllUsers,
   ApiGetUser,
   ApiGetUserById,
+  ApiUpdatePassword,
   ApiUpdateUser,
 } from './swagger/users.swagger';
 import { IRequestWithUser } from '../auth/auth.types';
@@ -30,6 +31,7 @@ import { UserRole } from './entities/enums/users.enums';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { User } from './entities/user.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -98,5 +100,14 @@ export class UsersController {
     @Param('categoryId') categoryId: string,
   ) {
     await this.usersService.removeCategory(req.user.sub, categoryId);
+  }
+  @UseGuards(AccessTokenGuard)
+  @Patch('me/password')
+  @ApiUpdatePassword()
+  async findAllLearnedCategories(
+    @Req() req: IRequestWithUser,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    await this.usersService.updatePassword(req.user.sub, updatePasswordDto);
   }
 }

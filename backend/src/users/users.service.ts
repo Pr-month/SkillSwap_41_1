@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,9 @@ import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { Category } from '../categories/entities/category.entity';
 import { UserRole } from './entities/enums/users.enums';
 import { City } from '../cities/entities/city.entity';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { appConfig, IAppConfig } from '../config/app.config';
+import * as bcrypt from 'bcrypt';
 
 const userProfileRelations = {
   skills: true,
@@ -29,6 +33,8 @@ export class UsersService {
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(City)
     private readonly cityRepo: Repository<City>,
+    @Inject(appConfig.KEY)
+    private readonly configService: IAppConfig,
   ) {}
 
   async create(createUserDto: CreateUserInput): Promise<User> {
@@ -177,5 +183,17 @@ export class UsersService {
     }
 
     return user.wantToLearn;
+  }
+
+  async updatePassword(userId: string, dto: UpdatePasswordDto) {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.password = await bcrypt.hash(
+      dto.newPassword,
+      this.configService.hashSalt,
+    );
+    await this.userRepo.save(user);
   }
 }
