@@ -18,6 +18,8 @@ import { Request } from './entities/request.entity';
 import { RequestStatus } from './entities/request.enum';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../notifications/notifications.type';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPayload } from '../notifications/notifications.type';
 
 @Injectable()
 export class RequestsService {
@@ -36,6 +38,7 @@ export class RequestsService {
     @InjectRepository(Skill)
     private readonly skillsRepository: Repository<Skill>,
     private readonly notificationsGateway: NotificationsGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createRequestDto: CreateRequestDto, senderId: string) {
@@ -80,7 +83,7 @@ export class RequestsService {
 
     const skillName = requestedSkill.title;
 
-    this.notificationsGateway.notifyUser(receiver.id, {
+    const payload: NotificationPayload = {
       type: NotificationType.NEW_REQUEST,
       skillName,
       fromUser: {
@@ -89,7 +92,11 @@ export class RequestsService {
       },
       requestId: savedRequest.id,
       timeStamp: new Date(),
-    });
+    };
+
+    await this.notificationsService.createForUser(receiver.id, payload);
+
+    this.notificationsGateway.notifyUser(receiver.id, payload);
 
     return this.requestsRepository.findOneOrFail({
       where: { id: savedRequest.id },
@@ -127,7 +134,7 @@ export class RequestsService {
 
     const skillName = request.requestedSkill.title;
 
-    this.notificationsGateway.notifyUser(request.sender.id, {
+    const payload: NotificationPayload = {
       type: notificationType,
       skillName,
       fromUser: {
@@ -136,7 +143,10 @@ export class RequestsService {
       },
       requestId: request.id,
       timeStamp: new Date(),
-    });
+    };
+    await this.notificationsService.createForUser(request.sender.id, payload);
+
+    this.notificationsGateway.notifyUser(request.sender.id, payload);
 
     return updatedRequest;
   }
