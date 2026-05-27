@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserInput } from './users.types';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { Category } from '../categories/entities/category.entity';
@@ -31,7 +31,7 @@ export class UsersService {
     private readonly cityRepo: Repository<City>,
   ) {}
 
-  async create(createUserDto: CreateUserInput): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const { wantToLearn, cityId, role, ...rest } = createUserDto;
 
     const duplicate = await this.userRepo.findOne({
