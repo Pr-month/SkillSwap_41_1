@@ -12,6 +12,8 @@ import { AboutPage } from '@/pages/AboutPage/AboutPage';
 import { fetchExchanges } from '@/services/slices/exchangeSlice';
 import { getSkills } from '@/services/slices/skillsSlice';
 import Loader from '@/shared/ui/Loader/loader';
+import { useNotificationsSocket } from '@/features/notification/useNotification';
+import { NotificationListener } from '@/features/notification/NotificationListener';
 const ProfileDetailsPage = lazy(
   () =>
     new Promise<{ default: ComponentType<unknown> }>(resolve => {
@@ -49,6 +51,7 @@ function App() {
         Мы передаем ему `location={backgroundLocation || location}`.
         Это "замораживает" фоновую страницу, когда модальное окно активнo.
       */}
+      <NotificationListener />
       <Routes location={backgroundLocation || location}>
         {/*
           Маршруты, которые используют основной Layout.
