@@ -116,7 +116,7 @@ export class AuthService {
     const cookieOptions: CookieOptions = {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
+      sameSite: 'none',
     };
 
     res.cookie('accessToken', tokens.accessToken, {
