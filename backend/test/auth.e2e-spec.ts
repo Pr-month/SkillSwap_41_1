@@ -34,6 +34,10 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('POST /auth/register', () => {
+    afterAll(async () => {
+      await usersRepository.delete({ email: 'denis@test.com' })
+    })
+
     it('should register user', async () => {
       const response: request.Response = await request(app.getHttpServer())
         .post('/auth/register')
