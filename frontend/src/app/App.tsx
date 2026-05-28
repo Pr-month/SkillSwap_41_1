@@ -12,8 +12,8 @@ import { AboutPage } from '@/pages/AboutPage/AboutPage';
 import { fetchExchanges } from '@/services/slices/exchangeSlice';
 import { getSkills } from '@/services/slices/skillsSlice';
 import Loader from '@/shared/ui/Loader/loader';
-import { useNotificationsSocket } from '@/features/notification/useNotification';
 import { NotificationListener } from '@/features/notification/NotificationListener';
+import { AuthProvider } from '@/features/auth/context/AuthProvider';
 const ProfileDetailsPage = lazy(
   () =>
     new Promise<{ default: ComponentType<unknown> }>(resolve => {
@@ -46,6 +46,7 @@ function App() {
 
   return (
     <Suspense fallback={<Loader />}>
+      <AuthProvider>
       {/* 
         Основной блок <Routes> для отображения страниц.
         Мы передаем ему `location={backgroundLocation || location}`.
@@ -144,6 +145,7 @@ function App() {
           />
         </Routes>
       )}
+      </AuthProvider>
     </Suspense>
   );
 }
