@@ -24,6 +24,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.enableCors({
+    origin: app.get<IAppConfig>(appConfig.KEY).frontHost,
+    credentials: true,
+  });
   app.use(customRateLimiter);
   app.use(helmet());
   app.use(cookieParser());
