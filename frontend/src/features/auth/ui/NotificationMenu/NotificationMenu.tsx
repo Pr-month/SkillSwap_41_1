@@ -3,26 +3,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import IdeaIcon from '@/app/assets/static/images/icons/idea.svg';
 import styles from './NotificationMenu.module.css';
 import { Button } from '@/shared/ui/button/button';
-
 import type { AppDispatch } from '@/services/store/store';
-
 import {
   markAllAsViewed,
   clearViewed,
   markAsViewed,
 } from '../../../../services/slices/notificationSlice';
-
 import {
   selectNewNotifications,
   selectViewedNotifications,
 } from './../../../../services/selectors/notificationSelectors';
-
 import { NotificationType } from '../../../../features/notification/notification.type';
 
-export function NotificationMenu() {
+type NotificationMenuProps = {
+  isOpen: boolean;
+};
+
+export function NotificationMenu({ isOpen }: NotificationMenuProps) {
   const dispatch = useDispatch<AppDispatch>();
   const newNotifications = useSelector(selectNewNotifications);
   const viewedNotifications = useSelector(selectViewedNotifications);
+
+  if (!isOpen) return null;
 
   const handleReadAll = (): void => {
     dispatch(markAllAsViewed());
