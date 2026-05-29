@@ -190,6 +190,13 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    const isPasswordValid = await bcrypt.compare(
+      dto.oldPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new BadRequestException('Old password is incorrect');
+    }
     user.password = await bcrypt.hash(
       dto.newPassword,
       this.configService.hashSalt,
