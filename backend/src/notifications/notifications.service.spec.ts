@@ -118,4 +118,36 @@ describe('NotificationsService', () => {
       );
     });
   });
+
+  describe('markAllAsRead', () => {
+    it('Сервис должен вернуть пустой массив если непрочитанных нет', async () => {
+      mockRepository.find.mockResolvedValue([]);
+
+      const result = await service.markAllAsRead('user-1');
+
+      expect(mockRepository.find).toHaveBeenCalledWith({
+        where: { receiverId: 'user-1', isRead: false },
+      });
+      expect(mockRepository.save).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it('Сервис должен отметить все непрочитанные уведомления', async () => {
+      const notifications = [
+        { id: 'n1', receiverId: 'user-1', isRead: false },
+        { id: 'n2', receiverId: 'user-1', isRead: false },
+      ];
+      const saved = [
+        { id: 'n1', receiverId: 'user-1', isRead: true },
+        { id: 'n2', receiverId: 'user-1', isRead: true },
+      ];
+      mockRepository.find.mockResolvedValue(notifications);
+      mockRepository.save.mockResolvedValue(saved);
+
+      const result = await service.markAllAsRead('user-1');
+
+      expect(mockRepository.save).toHaveBeenCalledWith(saved);
+      expect(result).toEqual(saved);
+    });
+  });
 });

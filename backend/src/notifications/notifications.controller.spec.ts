@@ -8,6 +8,7 @@ describe('NotificationsController', () => {
   const notificationsServiceMock = {
     findMy: jest.fn(),
     markAsRead: jest.fn(),
+    markAllAsRead: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -56,5 +57,18 @@ describe('NotificationsController', () => {
       'user-1',
     );
     expect(result).toEqual({ id: 'n1', isRead: true });
+  });
+
+  it('markAllAsRead', async () => {
+    notificationsServiceMock.markAllAsRead.mockResolvedValue([]);
+
+    const result = await controller.markAllAsRead({
+      user: { sub: 'user-1' },
+    } as IRequestWithUser);
+
+    expect(notificationsServiceMock.markAllAsRead).toHaveBeenCalledWith(
+      'user-1',
+    );
+    expect(result).toEqual([]);
   });
 });

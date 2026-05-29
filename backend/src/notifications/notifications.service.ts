@@ -54,4 +54,21 @@ export class NotificationsService {
 
     return result;
   }
+
+  async markAllAsRead(receiverId: string): Promise<Notification[]> {
+    const notifications = await this.notificationRepository.find({
+      where: { receiverId, isRead: false },
+    });
+
+    notifications.forEach((item) => {
+      item.isRead = true;
+    });
+
+    if (notifications.length > 0) {
+      const result = await this.notificationRepository.save(notifications);
+      return result;
+    }
+    
+    return [];
+  }
 }

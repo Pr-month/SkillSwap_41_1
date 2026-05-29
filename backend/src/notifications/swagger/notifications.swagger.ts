@@ -18,7 +18,7 @@ export const ApiFindMyNotifications = () =>
     ApiUnauthorizedResponse({ description: 'Unauthorized' }),
   );
 
-export const ApiMarkAsReadNotification = () => 
+export const ApiMarkAsReadNotification = () =>
   applyDecorators(
     ApiOperation({ summary: 'Mark notification as read' }),
     ApiParam({ name: 'id', type: String }),
@@ -28,4 +28,14 @@ export const ApiMarkAsReadNotification = () =>
     }),
     ApiUnauthorizedResponse({ description: 'Unauthorized' }),
     ApiNotFoundResponse({ description: 'Notification not found' }),
+  );
+
+export const ApiMarkAllAsReadNotifications = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Mark all notifications as read' }),
+    ApiOkResponse({
+      description: 'Marked unread notifications as read. Returns empty array if there were no unread notifications',
+      type: [Notification],
+    }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
   );
