@@ -4,6 +4,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiBadRequestResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 
 export const ApiFindAllUsers = () =>
@@ -41,4 +42,37 @@ export const ApiDeleteUser = () =>
     ApiOperation({ summary: 'Delete user by id' }),
     ApiOkResponse({ description: 'The user has been successfully deleted.' }),
     ApiNotFoundResponse({ description: 'User not found.' }),
+  );
+
+export const ApiUpdatePassword = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Update password' }),
+    ApiOkResponse({ description: 'Password successfully updated' }),
+    ApiBadRequestResponse({ description: 'Invalid password' }),
+    ApiNotFoundResponse({ description: 'User not found' }),
+  );
+
+export const ApiFindAllUserCategories = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Get all user categories' }),
+    ApiOkResponse({ description: 'Return all user categories' }),
+  );
+
+export const ApiCreateUserCategory = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Create a user category' }),
+    ApiParam({ name: 'categoryId', required: true }),
+    ApiOkResponse({ description: 'User category successfully created' }),
+    ApiNotFoundResponse({ description: 'Category not found' }),
+    ApiBadRequestResponse({
+      description: 'Category already exists for this user',
+    }),
+  );
+
+export const ApiDeleteUserCategory = () =>
+  applyDecorators(
+    ApiOperation({ summary: 'Delete a user category' }),
+    ApiParam({ name: 'categoryId', required: true }),
+    ApiOkResponse({ description: 'User category successfully deleted' }),
+    ApiNotFoundResponse({ description: 'Category not found' }),
   );
