@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
 import { Request } from './entities/request.entity';
@@ -39,6 +40,10 @@ describe('RequestsService', () => {
     notifyUser: jest.fn(),
   };
 
+  const mockNotificationsService = {
+    createForUser: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -60,6 +65,10 @@ describe('RequestsService', () => {
         {
           provide: NotificationsGateway,
           useValue: mockNotificationsGateway,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();
@@ -110,6 +119,10 @@ describe('RequestsService', () => {
           type: NotificationType.NEW_REQUEST,
           skillName: 'NestJS',
         }),
+      );
+      expect(mockNotificationsService.createForUser).toHaveBeenCalledWith(
+        receiver.id,
+        expect.objectContaining({ type: NotificationType.NEW_REQUEST }),
       );
       expect(result).toEqual(newRequest);
     });
@@ -180,6 +193,10 @@ describe('RequestsService', () => {
           type: NotificationType.ACCEPTED,
           skillName: 'NestJS',
         }),
+      );
+      expect(mockNotificationsService.createForUser).toHaveBeenCalledWith(
+        'sender-id',
+        expect.objectContaining({ type: NotificationType.ACCEPTED }),
       );
       expect(result.status).toBe(RequestStatus.ACCEPTED);
     });
