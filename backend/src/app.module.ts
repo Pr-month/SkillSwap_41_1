@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { appConfig } from './config/app.config';
 import { jwtConfig } from './config/jwt.config';
 import { dbConfig } from './config/db.config';
+import { mailConfig } from './config/mail.config';
 import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/file.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -21,7 +22,7 @@ import { CitiesModule } from './cities/cities.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, jwtConfig, dbConfig],
+      load: [appConfig, jwtConfig, dbConfig, mailConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
