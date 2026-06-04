@@ -15,13 +15,14 @@
 
 ## Структура репозитория
 
-Монорепозиторий с двумя приложениями:
+Монорепозиторий:
 
 ```
 SkillSwap_41_1/
-├── backend/              # REST API
-├── frontend/             # веб-клиент
-└── docker-compose.yml    # PostgreSQL, backend, frontend
+├── backend/                      # REST API
+├── frontend/                     # веб-клиент
+├── docker-compose.yml            # PostgreSQL, backend, frontend, mail-service
+└── microservices/mail-service/   # submodule, email API
 ```
 
 ## Быстрый старт
@@ -30,21 +31,28 @@ SkillSwap_41_1/
 
 **Всё в Docker**
 1. Клонировать репозиторий и перейти в корень проекта.
-2. `docker compose up -d`
-3. Подготовить БД:
-   - `cd backend`
+2. `git submodule update --init`
+3. Mail-service: 
+   - `cd microservices/mail-service`
+   - `.env.example` => `.env` 
+   - заполнить SMTP (Ethereal).
+4. Backend: 
    - `.env.example` => `.env`
+5. `docker compose up -d --build`
+6. Database:
+   - `cd backend`
    - `npm install`
    - `npm run migration:run`
    - `npm run seed:prod`
 
 **Локальный запуск:** 
-1. Можно поднять только БД в Docker (`docker compose up -d db`) и запускать backend и/или frontend на хосте.
+1. Можно поднять только БД в Docker (`docker compose up -d db`) и запускать backend/frontend/mail-service на хосте.
 
 ## Сервисы: 
 
 - Frontend: http://localhost:8080
 - API: http://localhost:3000
 - Swagger: http://localhost:3000/api
+- Mail: http://localhost:3001 (health: http://localhost:3001/health)
 
 Подробнее о проекте: [backend/README.md](./backend/README.md), [frontend/README.md](./frontend/README.md).
