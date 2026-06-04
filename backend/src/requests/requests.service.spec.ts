@@ -15,6 +15,7 @@ import { UserRole } from '../users/entities/enums/users.enums';
 import { RequestStatus } from './entities/request.enum';
 import { NotificationType } from '../notifications/notifications.type';
 import { IRequestWithUser } from '../auth/auth.types';
+import { MailService } from '../mail/mail.service';
 
 describe('RequestsService', () => {
   let service: RequestsService;
@@ -44,6 +45,10 @@ describe('RequestsService', () => {
     createForUser: jest.fn(),
   };
 
+  const mockMailService = {
+    sendNotification: jest.fn()
+  }
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -70,6 +75,9 @@ describe('RequestsService', () => {
           provide: NotificationsService,
           useValue: mockNotificationsService,
         },
+        { provide: MailService,
+          useValue: mockMailService
+        }
       ],
     }).compile();
 
@@ -124,6 +132,7 @@ describe('RequestsService', () => {
         receiver.id,
         expect.objectContaining({ type: NotificationType.NEW_REQUEST }),
       );
+      expect(mockMailService.sendNotification).toHaveBeenCalled();
       expect(result).toEqual(newRequest);
     });
 
@@ -198,6 +207,7 @@ describe('RequestsService', () => {
         'sender-id',
         expect.objectContaining({ type: NotificationType.ACCEPTED }),
       );
+      expect(mockMailService.sendNotification).toHaveBeenCalled();
       expect(result.status).toBe(RequestStatus.ACCEPTED);
     });
 
