@@ -20,7 +20,7 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../notifications/notifications.type';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationPayload } from '../notifications/notifications.type';
-
+import { MailService } from '../mail/mail.service';
 @Injectable()
 export class RequestsService {
   private readonly requestRelations: FindOptionsRelations<Request> = {
@@ -39,7 +39,23 @@ export class RequestsService {
     private readonly skillsRepository: Repository<Skill>,
     private readonly notificationsGateway: NotificationsGateway,
     private readonly notificationsService: NotificationsService,
+    private readonly mailService: MailService,
   ) {}
+
+  private async sendRequestEmail(
+    email: string,
+    subject: string,
+    text: string,
+  ): Promise<void> {
+    try {
+      await this.mailService.sendNotification({
+        email,
+        payload: { subject, text },
+      });
+    } catch {
+      // заявка сохранена в бд, ответ не падает
+    }
+  }
 
   async create(createRequestDto: CreateRequestDto, senderId: string) {
     const [sender, offeredSkill, requestedSkill] = await Promise.all([
@@ -98,6 +114,12 @@ export class RequestsService {
 
     this.notificationsGateway.notifyUser(receiver.id, payload);
 
+    await this.sendRequestEmail(
+      receiver.email,
+      `Новая заявка на обмен навыками`,
+      `${sender.name} предлагает обмен: навык «${skillName}»`,
+    );
+
     return this.requestsRepository.findOneOrFail({
       where: { id: savedRequest.id },
       relations: this.requestRelations,
@@ -147,6 +169,12 @@ export class RequestsService {
     await this.notificationsService.createForUser(request.sender.id, payload);
 
     this.notificationsGateway.notifyUser(request.sender.id, payload);
+
+    await this.sendRequestEmail(
+      request.sender.email,
+      `Обновление статуса заявки`,
+      `Проверьте вашу заявку по навыку «${skillName}»`
+    );
 
     return updatedRequest;
   }

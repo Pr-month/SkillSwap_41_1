@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { MailModule } from '../mail/mail.module';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
 import { Request } from './entities/request.entity';
@@ -13,6 +14,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     TypeOrmModule.forFeature([Request, User, Skill]),
     AuthModule,
     NotificationsModule,
+    MailModule
   ],
   controllers: [RequestsController],
   providers: [RequestsService],
