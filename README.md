@@ -38,8 +38,8 @@ SkillSwap_41_1/
 3. Mail-service: # microservices/mail-service/
    - `.env.example` => `.env`
    - заполнить SMTP (Ethereal).
-4. Backend: # корень проекта
-   - `backend/.env.example` => `backend/.env`
+4. Backend: # backend
+   - `.env.example` => `.env`
 5. Docker: # корень проекта
    - `docker compose up -d --build`
 6. Database: # backend
