@@ -1,0 +1,3 @@
+[submodule "microservices/mail-service"]
+	path = microservices/mail-service
+	url = git@github.com:StepashkaXD/mailer.git
