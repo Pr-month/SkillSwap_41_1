@@ -5,6 +5,16 @@ import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './common/filters/all-exception.filter';
 import { appConfig, IAppConfig } from './config/app.config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
+const customRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // уточнить
+  max: 25, // уточнить
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests' },
+});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +24,12 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.enableCors({
+    origin: app.get<IAppConfig>(appConfig.KEY).frontHost,
+    credentials: true,
+  });
+  app.use(customRateLimiter);
+  app.use(helmet());
   app.use(cookieParser());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new AllExceptionsFilter());

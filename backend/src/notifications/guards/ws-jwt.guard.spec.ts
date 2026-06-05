@@ -11,11 +11,23 @@ const mockJwtService = {
   verify: jest.fn(),
 };
 
-const createMockClient = (token?: string) =>
-  ({
-    handshake: { query: token !== undefined ? { token } : {} },
-    data: {},
-  }) as unknown as SocketWithUser;
+const createMockClient = (token?: string) => {
+  if (token) {
+    return {
+      handshake: {
+        headers: { cookie: `accessToken=${token}` },
+      },
+      data: {},
+    } as unknown as SocketWithUser;
+  } else {
+    return {
+      handshake: {
+        headers: { cookie: '' },
+      },
+      data: {},
+    } as unknown as SocketWithUser;
+  }
+};
 
 describe('WsJwtService', () => {
   let service: WsJwtService;

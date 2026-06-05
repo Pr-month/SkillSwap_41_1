@@ -12,7 +12,7 @@ export const dbConfig = registerAs(
     database: process.env.DB_NAME || 'skillswap',
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-    synchronize: process.env.NODE_ENV !== 'production',
+    synchronize: false,
   }),
 );
 

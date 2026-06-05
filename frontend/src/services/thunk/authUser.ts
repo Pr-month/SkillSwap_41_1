@@ -1,10 +1,10 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { AUTH_USER_SLICE } from '../slices/slicesName';
-import { TAuthResponse, TLoginData, TUserResponse } from '@/shared/utils/api';
-import { getUserApi, loginUserApi, logoutApi } from '@/shared/mocks/authMock';
-import { deleteCookie, setCookie } from '@/shared/utils/cookies';
+import { TLoginData } from '@/shared/utils/api';
+import { getUserApi, loginUserApi, logoutUserApi } from '@/api/skillSwapApi';
+import { User } from '@/entities/user/model/types';
 
-export const fetchUser = createAsyncThunk<TUserResponse, void>(
+export const fetchUser = createAsyncThunk<User, void>(
   `${AUTH_USER_SLICE}/fetchUser`,
   async (_, { rejectWithValue }) => {
     try {
@@ -16,13 +16,11 @@ export const fetchUser = createAsyncThunk<TUserResponse, void>(
   },
 );
 
-export const loginUser = createAsyncThunk<TAuthResponse, TLoginData>(
+export const loginUser = createAsyncThunk<User, TLoginData>(
   `${AUTH_USER_SLICE}/loginUser`,
   async (dataUser, { rejectWithValue }) => {
     try {
       const data = await loginUserApi(dataUser);
-      setCookie('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
       return data;
     } catch (error) {
       return rejectWithValue(error);
@@ -30,13 +28,11 @@ export const loginUser = createAsyncThunk<TAuthResponse, TLoginData>(
   },
 );
 
-export const logoutUserApi = createAsyncThunk(
+export const logoutUser = createAsyncThunk(
   `${AUTH_USER_SLICE}/logoutUserApi`,
   async (_, { rejectWithValue }) => {
     try {
-      const data = await logoutApi();
-      deleteCookie('accessToken');
-      localStorage.removeItem('accessToken');
+      const data = await logoutUserApi();
       return data;
     } catch (error) {
       return rejectWithValue(error);

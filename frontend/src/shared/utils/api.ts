@@ -16,8 +16,6 @@ export type TRefreshResponse = TServerResponse<{
 }>;
 
 export type TAuthResponse = TServerResponse<{
-  refreshToken: string;
-  accessToken: string;
   user: User;
 }>;
 

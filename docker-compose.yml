@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -10,6 +10,50 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    
+
+  mail-service:
+    restart: unless-stopped
+    build: 
+      context: ./microservices/mail-service
+      dockerfile: Dockerfile
+      target: runner
+    env_file:
+      - ./microservices/mail-service/.env
+    ports:
+      - "3001:3001"
+
+  # после merge todo(#253): в backend/Dockerfile migration:run перед start:dev
+  backend: 
+    restart: unless-stopped
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: db
+      MAIL_SERVICE_URL: http://mail-service:3001
+    depends_on:
+      - db
+      - mail-service
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/public/uploads:/backend/public/uploads
+
+  frontend:
+    restart: unless-stopped
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    ports:
+      - "8080:8080"
+
 volumes:
   pgdata:

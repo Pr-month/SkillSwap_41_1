@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import { City } from '../cities/entities/city.entity';
 import { Category } from '../categories/entities/category.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { appConfig } from '../config/app.config';
 
 type MockUserRepository = {
   find: jest.Mock;
@@ -50,6 +51,10 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(Category),
           useValue: { findBy: jest.fn() },
+        },
+        {
+          provide: appConfig.KEY,
+          useValue: { jwtSecret: 'secret' },
         },
       ],
     }).compile();

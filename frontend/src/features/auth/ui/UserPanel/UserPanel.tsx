@@ -63,9 +63,9 @@ export const UserPanel = () => {
               />
             ) : (
               user?.name
-                .split(' ')
-                .map(n => n[0])
-                .join('')
+                // .split(' ')
+                // .map(n => n[0])
+                // .join('')
             )}
           </div>
         </div>

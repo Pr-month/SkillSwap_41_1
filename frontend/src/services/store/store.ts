@@ -13,6 +13,7 @@ import { skillsReducer } from '../slices/skillsSlice';
 import stepsSlice from '@/services/slices/stepSlice';
 import filtersReducer from '@/services/slices/filtersSlice';
 import likeReducer from '@/services/slices/likeSlice';
+import { notificationsReducer } from '../slices/notificationSlice';
 
 import authSlice from '../slices/authSlice';
 
@@ -25,6 +26,7 @@ export const rootReducer = combineSlices({
   filters: filtersReducer,
   likes: likeReducer,
   [authSlice.name]: authSlice.reducer,
+  notifications: notificationsReducer,
 });
 
 const store = configureStore({

@@ -16,11 +16,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json",
-    "pretest:e2e": "npm run seed:test",
-    "seed:test": "cross-env NODE_ENV=test dotenv_config_path=.env.test.local ts-node -r dotenv/config -r tsconfig-paths/register src/seeding/test.seeder.ts",
-    "seed:prod": "cross-env NODE_ENV=production dotenv_config_path=.env ts-node -r dotenv/config -r tsconfig-paths/register src/seeding/prod.seeder.ts"
+    "pretest:e2e": "npm run db:reset:test && npm run seed:test",
+    "db:reset:test": "cross-env NODE_ENV=test npm run typeorm -- schema:drop && cross-env NODE_ENV=test npm run typeorm -- migration:run",
+    "seed:test": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register src/seeding/test.seeder.ts",
+    "seed:prod": "ts-node -r tsconfig-paths/register src/seeding/prod.seeder.ts",
+    "typeorm": "typeorm-ts-node-commonjs -d ./data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run",
+    "migration:revert": "npm run typeorm -- migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -39,6 +43,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "ms": "^2.1.3",
     "passport": "^0.7.0",

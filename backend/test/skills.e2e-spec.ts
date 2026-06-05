@@ -117,7 +117,7 @@ describe('SkillsController (e2e)', () => {
         .get('/skills?page=1&limit=10')
         .expect(200);
 
-      expect(response.body.page).toBe('1');
+      expect(response.body.page).toBe(1);
       expect(response.body.data.length).toBe(7);
     });
 

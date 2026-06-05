@@ -12,6 +12,8 @@ import { AboutPage } from '@/pages/AboutPage/AboutPage';
 import { fetchExchanges } from '@/services/slices/exchangeSlice';
 import { getSkills } from '@/services/slices/skillsSlice';
 import Loader from '@/shared/ui/Loader/loader';
+import { NotificationListener } from '@/features/notification/NotificationListener';
+import { AuthProvider } from '@/features/auth/context/AuthProvider';
 const ProfileDetailsPage = lazy(
   () =>
     new Promise<{ default: ComponentType<unknown> }>(resolve => {
@@ -44,11 +46,13 @@ function App() {
 
   return (
     <Suspense fallback={<Loader />}>
+      <AuthProvider>
       {/* 
         Основной блок <Routes> для отображения страниц.
         Мы передаем ему `location={backgroundLocation || location}`.
         Это "замораживает" фоновую страницу, когда модальное окно активнo.
       */}
+      <NotificationListener />
       <Routes location={backgroundLocation || location}>
         {/*
           Маршруты, которые используют основной Layout.
@@ -141,6 +145,7 @@ function App() {
           />
         </Routes>
       )}
+      </AuthProvider>
     </Suspense>
   );
 }

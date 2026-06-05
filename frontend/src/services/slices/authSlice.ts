@@ -2,7 +2,7 @@ import { User } from '@/entities/user/model/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AUTH_USER_SLICE } from './slicesName';
 import { RequestStatus } from '@/entities/auth/model/types';
-import { fetchUser, loginUser, logoutUserApi } from '../thunk/authUser';
+import { fetchUser, loginUser, logoutUser } from '../thunk/authUser';
 
 export interface AuthState {
   data: User | null;
@@ -57,9 +57,9 @@ export const authSlice = createSlice({
       .addCase(loginUser.pending, handlePending)
       .addCase(loginUser.fulfilled, handleFulfilled)
       .addCase(loginUser.rejected, handleRejected)
-      .addCase(logoutUserApi.pending, handlePending)
-      .addCase(logoutUserApi.fulfilled, handlelogout)
-      .addCase(logoutUserApi.rejected, handleRejected);
+      .addCase(logoutUser.pending, handlePending)
+      .addCase(logoutUser.fulfilled, handlelogout)
+      .addCase(logoutUser.rejected, handleRejected);
   },
   selectors: {
     selectUser: state => state.data,
