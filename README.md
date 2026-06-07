@@ -30,17 +30,19 @@ SkillSwap_41_1/
 Схема БД поднимается через миграции (synchronize выключен). Команды `migration:run` и `seed:prod` выполняются из папки backend на машине локально.
 
 **Всё в Docker**
+
 1. Клонировать репозиторий и перейти в корень проекта.
-2. `git submodule update --init`
-3. Mail-service: 
-   - `cd microservices/mail-service`
-   - `.env.example` => `.env` 
-   - заполнить SMTP (Ethereal).
-4. Backend: 
+2. Submodule: # корень проекта
+   - `git submodule init`
+   - `git submodule update`
+3. Mail-service: # microservices/mail-service/
    - `.env.example` => `.env`
-5. `docker compose up -d --build`
-6. Database:
-   - `cd backend`
+   - заполнить SMTP (Ethereal).
+4. Backend: # backend
+   - `.env.example` => `.env`
+5. Docker: # корень проекта
+   - `docker compose up -d --build`
+6. Database: # backend
    - `npm install`
    - `npm run migration:run`
    - `npm run seed:prod`
